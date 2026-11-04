@@ -1,0 +1,1 @@
+window.STORMBOUND_DIRECTORY_URL = '';

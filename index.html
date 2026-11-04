@@ -15,7 +15,7 @@
 		h1 { margin:0; font:400 40px/1 'DM Serif Display',Georgia,serif; }
 		.subtitle { margin:0 0 2px; color:var(--muted); font-size:11px; }
 		.game-frame { overflow:hidden; border:1px solid #536a60; border-radius:7px; background:#15211e; box-shadow:0 24px 80px #0008,0 0 0 5px #ffffff08; }
-		.hud { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; min-height:68px; padding:12px 18px; gap:16px; background:var(--panel); border-bottom:1px solid var(--line); }
+		.hud { display:grid; grid-template-columns:1fr auto auto 1fr; align-items:center; min-height:68px; padding:12px 18px; gap:16px; background:var(--panel); border-bottom:1px solid var(--line); }
 		.stat { display:flex; align-items:center; gap:10px; }
 		.stat:last-child { justify-content:end; }
 		.stat-label { color:var(--muted); font-size:9px; letter-spacing:1.2px; text-transform:uppercase; }
@@ -25,11 +25,40 @@
 		.center-stat { text-align:center; }
 		.center-stat .stat-label { display:block; margin-bottom:4px; }
 		.stage { color:var(--gold); }
-		.canvas-wrap { position:relative; aspect-ratio:16/9; min-height:260px; }
+		.canvas-wrap { position:relative; width:min(100%,min(82vh,900px)); margin:0 auto; aspect-ratio:1/1; min-height:0; }
 		canvas { display:block; width:100%; height:100%; cursor:crosshair; }
+		#minimap { position:absolute; z-index:1; top:12px; right:12px; width:clamp(100px,16vw,150px); height:auto; aspect-ratio:1; border:1px solid #d5d8a8; border-radius:3px; background:#101a17; box-shadow:0 3px 14px #0009; pointer-events:none; }
+		.chat-box { position:absolute; z-index:2; left:12px; bottom:12px; display:flex; flex-direction:column; width:min(290px,68%); max-height:210px; overflow:hidden; border:1px solid #536a60; border-radius:4px; background:#111a1ae8; box-shadow:0 4px 18px #0009; text-align:left; }
+		.chat-box[hidden] { display:none; }
+		.chat-heading { display:flex; align-items:center; justify-content:space-between; min-height:30px; padding:4px 8px; border-bottom:1px solid var(--line); color:var(--mint); font-size:9px; }
+		.chat-toggle { min-width:26px; width:26px; height:24px; padding:0; border:0; color:var(--ink); background:transparent; font-size:14px; }
+		.chat-log { display:flex; flex-direction:column; gap:4px; min-height:44px; max-height:112px; overflow:auto; padding:7px 8px; font-size:9px; line-height:1.45; overflow-wrap:anywhere; }
+		.chat-message { color:var(--ink); }
+		.chat-message strong { color:var(--gold); font-weight:500; }
+		.chat-system { color:var(--muted); font-style:italic; }
+		.chat-form { display:flex; gap:5px; padding:6px; border-top:1px solid var(--line); }
+		.chat-form input { min-width:0; flex:1; padding:7px; border:1px solid #465a52; border-radius:3px; color:var(--ink); background:#0e1715; font:9px 'DM Mono',monospace; }
+		.chat-form button { padding:7px 9px; font-size:9px; }
+		.chat-form button:disabled,.chat-form input:disabled { opacity:.5; cursor:default; }
+		.chat-box.collapsed .chat-log,.chat-box.collapsed .chat-form { display:none; }
 		.overlay { position:absolute; inset:0; display:grid; place-items:center; padding:20px; background:#08110fd1; text-align:center; }
 		.overlay[hidden] { display:none; }
 		.dialog { max-width:390px; animation:rise-in 420ms ease both; }
+		.overlay:not(.quest-overlay) { z-index:0; place-items:end center; padding:18px; background:transparent; pointer-events:none; }
+		.overlay:not(.quest-overlay) .dialog { padding:15px 20px; border:1px solid #536a60; border-radius:4px; background:#08110fe8; pointer-events:auto; }
+		.quest-overlay { z-index:2; place-items:center; background:#08110fe8; text-align:left; }
+		.quest-dialog { width:min(100%,620px); max-height:100%; overflow:auto; padding:22px; border:1px solid #536a60; border-radius:5px; background:#1b2926; box-shadow:0 20px 60px #0009; }
+		.quest-heading { display:flex; align-items:start; justify-content:space-between; gap:16px; margin-bottom:16px; }
+		.quest-heading h2 { margin:0 0 5px; font:400 27px/1.1 'DM Serif Display',Georgia,serif; }
+		.quest-heading p { margin:0; color:var(--muted); font-size:10px; line-height:1.6; }
+		.quest-close { flex:0 0 36px; width:36px; height:36px; padding:0; border-color:var(--line); color:var(--ink); background:#253630; font-size:17px; }
+		.quest-options { display:grid; gap:7px; }
+		.quest-option { display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px; padding:11px 12px; border:1px solid #334641; border-radius:3px; background:#15211e; }
+		.quest-option h3 { margin:0 0 3px; font-size:11px; font-weight:500; }
+		.quest-option p { margin:0; color:var(--muted); font-size:9px; line-height:1.55; }
+		.quest-reward { color:var(--gold); }
+		.quest-action { min-width:105px; padding:9px 10px; border-color:#60796c; color:var(--ink); background:#283a33; font-size:9px; }
+		.quest-action:disabled { border-color:#334641; color:#84928b; background:#1b2926; cursor:default; transform:none; }
 		.sigil { margin-bottom:8px; color:var(--gold); font-size:30px; }
 		.dialog h2 { margin:0 0 8px; font:400 32px/1.1 'DM Serif Display',Georgia,serif; }
 		.dialog p { margin:0 0 20px; color:#b6c4bd; font-size:12px; line-height:1.7; }
@@ -41,13 +70,22 @@
 		#questText { color:var(--ink); }
 		#questPrompt { color:var(--gold); }
 		#spellText { color:var(--mint); }
+		.spellbar { display:flex; flex-wrap:wrap; gap:6px; padding:10px 18px; border-top:1px solid var(--line); background:#17231f; }
+		.spell-pick { min-width:74px; padding:7px 8px; border-color:#40564c; color:var(--muted); background:#1b2926; font-size:9px; text-transform:none; letter-spacing:0; }
+		.spell-pick[aria-pressed="true"] { border-color:var(--spell-color); color:var(--spell-color); background:#253630; }
+		.spell-pick:disabled { opacity:.42; cursor:default; transform:none; }
+		.spell-key { margin-right:5px; color:var(--gold); }
 		.controls { background:var(--panel); border-top:1px solid var(--line); color:var(--muted); }
+		.networkbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:11px 18px; border-top:1px solid var(--line); background:#15211e; color:var(--muted); font-size:10px; }
+		.networkbar input { min-width:140px; width:min(100%,220px); padding:9px 10px; border:1px solid #465a52; border-radius:3px; color:var(--ink); background:#0e1715; font:10px 'DM Mono',monospace; }
+		.networkbar button { padding:9px 11px; font-size:9px; }
+		.network-status { flex:1 1 180px; }
 		.control-group { display:flex; align-items:center; gap:7px; }
 		kbd { padding:4px 6px; border:1px solid #465a52; border-radius:3px; color:var(--ink); background:#253630; font:inherit; }
 		.key-set { display:flex; gap:3px; }
 		.footnote { margin:13px 2px 0; color:#788a82; font-size:9px; text-align:right; }
 		@keyframes rise-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-		@media(max-width:560px) { body{padding:18px 10px 24px} header{align-items:start;flex-direction:column;gap:7px} h1{font-size:34px} .hud{padding:10px;gap:6px} .stat{gap:6px} .stat-label{font-size:8px} .stat-value{font-size:12px} .questbar,.controls{padding:10px 11px;gap:8px 12px} .control-group{gap:5px} .canvas-wrap{min-height:230px} }
+		@media(max-width:560px) { body{padding:18px 10px 24px} header{align-items:start;flex-direction:column;gap:7px} h1{font-size:34px} .hud{padding:10px;gap:6px} .stat{gap:6px} .stat-label{font-size:8px} .stat-value{font-size:12px} .questbar,.controls{padding:10px 11px;gap:8px 12px} .spellbar{padding:9px 11px}.spell-pick{flex:1 1 72px;min-width:0}.control-group{gap:5px} .canvas-wrap{width:min(100%,82vh)}.networkbar{padding:10px 11px}.networkbar input{flex:1}.quest-dialog{padding:15px}.quest-option{grid-template-columns:1fr;gap:8px}.quest-action{width:100%} }
 		@media(prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important} }
 	</style>
 </head>
@@ -58,27 +96,60 @@
 			<div class="hud">
 				<div class="stat"><span class="stat-label">Vitality</span><div class="health-track" role="progressbar" aria-label="Wizard health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="health-fill"></div></div><span class="stat-value" id="healthText">100</span></div>
 				<div class="center-stat"><span class="stat-label">Night</span><span class="stat-value stage" id="waveText">01</span></div>
-				<div class="stat"><span class="stat-label">Sparks</span><span class="stat-value" id="scoreText">000</span></div>
+				<div class="stat"><span class="stat-label">Coins</span><span class="stat-value" id="coinText">000</span></div>
+				<div class="stat"><span class="stat-label">Wisps</span><span class="stat-value" id="scoreText">000</span></div>
 			</div>
 			<div class="canvas-wrap">
 				<canvas id="game" aria-label="Move with WASD or arrow keys, aim with the mouse, and click to cast lightning."></canvas>
-				<div class="overlay" id="overlay"><div class="dialog"><div class="sigil" aria-hidden="true">✳</div><h2 id="overlayTitle">A storm is gathering</h2><p id="overlayMessage">Find Elder Rowan to the west. Clear five shadow wisps, then return to learn a stronger spell.</p><button id="startButton" type="button">Enter the woods</button></div></div>
+				<canvas id="minimap" aria-label="Minimap showing the full arena and nearby characters"></canvas>
+				<section class="chat-box" id="chatBox" aria-label="Room chat" hidden>
+					<div class="chat-heading"><span>Room chat</span><button class="chat-toggle" id="chatToggle" type="button" aria-label="Collapse chat">−</button></div>
+					<div class="chat-log" id="chatLog" role="log" aria-live="polite"></div>
+					<form class="chat-form" id="chatForm"><input id="chatInput" maxlength="200" autocomplete="off" placeholder="Message your room…" aria-label="Chat message" disabled><button id="chatSend" type="submit" disabled>Send</button></form>
+				</section>
+				<div class="overlay" id="overlay"><div class="dialog"><div class="sigil" aria-hidden="true">✳</div><h2 id="overlayTitle">A storm is gathering</h2><p id="overlayMessage">Find Elder Rowan to the west. Choose a hunt and return to learn its spell.</p><button id="startButton" type="button">Enter the woods</button></div></div>
+				<div class="overlay quest-overlay" id="questOverlay" hidden>
+					<section class="quest-dialog" role="dialog" aria-modal="true" aria-labelledby="questTitle">
+						<div class="quest-heading"><div><h2 id="questTitle">Elder Rowan's spell trials</h2><p>Choose one hunt. Defeat the wisps, then return here to claim your spell.</p></div><button class="quest-close" id="closeQuest" type="button" aria-label="Close quest menu">×</button></div>
+						<div class="quest-options" id="questOptions"></div>
+					</section>
+				</div>
+				<div class="overlay quest-overlay" id="shopOverlay" hidden>
+					<section class="quest-dialog" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
+						<div class="quest-heading"><div><h2 id="shopTitle">Wayfarer's shop</h2><p>Spend dropped coins on a new look or a helpful companion.</p></div><button class="quest-close" id="closeShop" type="button" aria-label="Close shop">×</button></div>
+						<div class="quest-options" id="shopOptions"></div>
+					</section>
+				</div>
 			</div>
-			<div class="questbar" aria-live="polite"><span id="questText">Quest: Find Elder Rowan in the woods.</span><span id="questPrompt">The keeper waits to the west.</span><span id="spellText">Spell: Spark · Chain Lightning locked</span></div>
+			<div class="questbar" aria-live="polite"><span id="questText">Quest: Find Elder Rowan in the woods.</span><span id="questPrompt">The keeper waits to the west.</span><span id="spellText">Spell: Spark</span></div>
+			<div class="spellbar" id="spellbar" role="group" aria-label="Select a spell"></div>
 			<div class="controls">
 				<div class="control-group"><span class="key-set"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>Move</span></div>
 				<div class="control-group"><kbd>Mouse</kbd><span>Aim</span></div>
 				<div class="control-group"><kbd>Click</kbd><span>Cast</span></div>
-				<div class="control-group"><kbd>1</kbd><span>Spark</span><kbd>2</kbd><span>Chain</span></div>
+				<div class="control-group"><kbd>1–7</kbd><span>Select spell</span></div>
 				<div class="control-group"><kbd>E</kbd><span>Talk</span></div>
+				<div class="control-group"><button id="shopLaunch" type="button">Shop</button></div>
+			</div>
+			<div class="networkbar" aria-label="Online multiplayer">
+				<input id="nameInput" type="text" autocomplete="nickname" maxlength="20" placeholder="Wizard name" aria-label="Your player name">
+				<button id="hostButton" type="button">Host room</button>
+				<button id="quickJoinButton" type="button">Quick join</button>
+				<input id="roomInput" type="text" autocomplete="off" placeholder="Host room code" aria-label="Host room code">
+				<button id="joinButton" type="button">Join</button>
+				<button id="copyRoom" type="button" title="Copy room code">Copy code</button>
+				<span class="network-status" id="networkStatus" aria-live="polite">Offline game</span>
 			</div>
 		</section>
 		<p class="footnote">A / D strafe · Hold click for a steady stream · Keep moving</p>
 	</main>
+	<script src="multiplayer-config.js"></script>
 	<script>
 		(() => {
 			const canvas = document.querySelector('#game');
 			const ctx = canvas.getContext('2d');
+			const minimap = document.querySelector('#minimap');
+			const miniCtx = minimap.getContext('2d');
 			const wrap = document.querySelector('.canvas-wrap');
 			const overlay = document.querySelector('#overlay');
 			const startButton = document.querySelector('#startButton');
@@ -92,16 +163,72 @@
 			const questText = document.querySelector('#questText');
 			const questPrompt = document.querySelector('#questPrompt');
 			const spellText = document.querySelector('#spellText');
-			const W = 960, H = 540;
+			const coinText = document.querySelector('#coinText');
+			const questOverlay = document.querySelector('#questOverlay');
+			const questOptions = document.querySelector('#questOptions');
+			const shopOverlay = document.querySelector('#shopOverlay');
+			const shopOptions = document.querySelector('#shopOptions');
+			const spellbar = document.querySelector('#spellbar');
+			const hostButton = document.querySelector('#hostButton');
+			const quickJoinButton = document.querySelector('#quickJoinButton');
+			const joinButton = document.querySelector('#joinButton');
+			const roomInput = document.querySelector('#roomInput');
+			const nameInput = document.querySelector('#nameInput');
+			const networkStatus = document.querySelector('#networkStatus');
+			const copyRoom = document.querySelector('#copyRoom');
+			const chatBox = document.querySelector('#chatBox');
+			const chatLog = document.querySelector('#chatLog');
+			const chatForm = document.querySelector('#chatForm');
+			const chatInput = document.querySelector('#chatInput');
+			const chatSend = document.querySelector('#chatSend');
+			const chatToggle = document.querySelector('#chatToggle');
+			const shopLaunch = document.querySelector('#shopLaunch');
+			const closeQuest = document.querySelector('#closeQuest');
+			const closeShop = document.querySelector('#closeShop');
+			const W = 900, H = 900, WORLD_W = 1800, WORLD_H = 1800;
 			const keys = new Set();
 			const pointer = { x:W/2+100, y:H/2, down:false };
-			const player = { x:W/2, y:H/2, radius:15, speed:245, health:100, invulnerable:0, facing:0 };
-			const elder = { x:118, y:270 };
-			let enemies = [], bolts = [], arcs = [], particles = [];
-			let score = 0, wave = 1, questState = 'idle', questProgress = 0;
-			let spellUnlocked = false, activeSpell = 'spark';
+			const player = { id:'host', x:WORLD_W/2, y:WORLD_H/2, radius:15, speed:245, health:100, maxHealth:100, invulnerable:0, facing:0, spellId:'spark', avatar:'sage', shotTimer:0 };
+			const elder = { x:WORLD_W/2-170, y:WORLD_H/2 };
+			let enemies = [], bolts = [], arcs = [], particles = [], coinDrops = [], remotePlayers = [];
+			let score = 0, wave = 1, questProgress = 0;
 			let spawnTimer = 0, shotTimer = 0, running = false, lastTime = 0, elapsed = 0, frameId;
 			let rngSeed = 81;
+			let coins = 0, activeQuestId = null, nextEnemyId = 0;
+			let activeSpell = 'spark', activeAvatar = 'sage', activePet = null;
+			let networkRole = 'offline', gameSocket = null, localPeerId = null, currentRoom = '', snapshotTimer = 0, inputTimer = null;
+			const directoryUrl = (window.STORMBOUND_DIRECTORY_URL || location.origin).replace(/\/$/, '');
+			const ownedAvatars = new Set(['sage']);
+			const ownedPets = new Set();
+			const unlockedSpells = new Set(['spark']);
+			const spells = [
+				{ id:'spark', name:'Spark', element:'Electric', color:'#a4f0ce', speed:590, cooldown:.2 },
+				{ id:'chain', name:'Chain', element:'Electric', color:'#f5ca75', speed:590, cooldown:.85, chainJumps:2 },
+				{ id:'water', name:'Water', element:'Water', color:'#65c9f2', speed:500, cooldown:.48, splashRadius:54 },
+				{ id:'earth', name:'Earth', element:'Earth', color:'#d5a866', speed:360, cooldown:.72, splashRadius:86 },
+				{ id:'air', name:'Air', element:'Air', color:'#d2f3e8', speed:850, cooldown:.3, pierce:2 },
+				{ id:'cyber', name:'Cyber', element:'Cyber', color:'#67e8ef', speed:680, cooldown:.55, chainJumps:4 },
+				{ id:'fire', name:'Fire', element:'Fire', color:'#ff875d', speed:440, cooldown:.6, splashRadius:70 }
+			];
+			const quests = [
+				{ id:'chain', name:'Crackle in the Hollow', goal:5, reward:'chain', description:'Defeat 5 wisps · reward: Chain Lightning' },
+				{ id:'water', name:'The Drowned Spring', goal:5, reward:'water', description:'Defeat 5 wisps · reward: Water splash' },
+				{ id:'earth', name:'Roots of the Old Grove', goal:6, reward:'earth', description:'Defeat 6 wisps · reward: Earth burst' },
+				{ id:'air', name:'A Song on the Wind', goal:5, reward:'air', description:'Defeat 5 wisps · reward: Piercing Air lance' },
+				{ id:'cyber', name:'The Lost Signal', goal:7, reward:'cyber', description:'Defeat 7 wisps · reward: Cyber chain pulse' },
+				{ id:'fire', name:'Embers at Dusk', goal:5, reward:'fire', description:'Defeat 5 wisps · reward: Fire blast' }
+			];
+			const avatars = [
+				{ id:'sage', name:'Wayfarer', price:0, robe:'#536b70', hat:'#283b3c' },
+				{ id:'ember', name:'Ember Adept', price:12, robe:'#a75242', hat:'#633b38' },
+				{ id:'tide', name:'Tide Seer', price:12, robe:'#397a8a', hat:'#284c63' },
+				{ id:'grove', name:'Grove Keeper', price:15, robe:'#65834f', hat:'#384c39' }
+			];
+			const pets = [
+				{ id:'moth', name:'Spark Moth', price:10, health:15, color:'#f1d77d' },
+				{ id:'fox', name:'Moon Fox', price:16, health:25, color:'#df916e' },
+				{ id:'turtle', name:'Moss Turtle', price:20, health:40, color:'#9fc184' }
+			];
 
 			function random() { rngSeed = rngSeed * 16807 % 2147483647; return (rngSeed - 1) / 2147483646; }
 			function resize() {
@@ -109,31 +236,266 @@
 				const dpr = Math.min(window.devicePixelRatio || 1, 2);
 				canvas.width = Math.round(rect.width * dpr); canvas.height = Math.round(rect.height * dpr);
 				ctx.setTransform(canvas.width/W, 0, 0, canvas.height/H, 0, 0);
+				minimap.width=300;minimap.height=300;miniCtx.setTransform(2,0,0,2,0,0);
 				draw();
 			}
 			function spawnEnemy() {
-				const edge = Math.floor(random()*4);
-				const x = edge===0 ? -20 : edge===1 ? W+20 : 30+random()*(W-60);
-				const y = edge===2 ? -20 : edge===3 ? H+20 : 30+random()*(H-60);
-				enemies.push({ x,y,radius:13+Math.min(wave*.45,5),speed:49+wave*4+random()*14,phase:random()*7,health:1 });
+				const angle=random()*Math.PI*2,distance=330+random()*65;
+				const x=Math.max(30,Math.min(WORLD_W-30,player.x+Math.cos(angle)*distance));
+				const y=Math.max(30,Math.min(WORLD_H-30,player.y+Math.sin(angle)*distance));
+				enemies.push({ id:nextEnemyId++,x,y,radius:13+Math.min(wave*.45,5),speed:49+wave*4+random()*14,phase:random()*7,health:1 });
 			}
-			function cast() {
-				const dx=pointer.x-player.x, dy=pointer.y-player.y, length=Math.hypot(dx,dy)||1;
-				player.facing=Math.atan2(dy,dx);
-				bolts.push({x:player.x+Math.cos(player.facing)*20,y:player.y+Math.sin(player.facing)*20,vx:dx/length*590,vy:dy/length*590,life:.72,chain:activeSpell==='chain'});
-				for(let i=0;i<3;i++) particles.push({x:player.x+Math.cos(player.facing)*22,y:player.y+Math.sin(player.facing)*22,vx:Math.cos(player.facing)*(35+random()*80)+(random()-.5)*40,vy:Math.sin(player.facing)*(35+random()*80)+(random()-.5)*40,life:.2,max:.33,color:'#b8fff0',size:2+random()*2});
+			function cast(caster=player,aim=pointer,spellId=caster.spellId||activeSpell) {
+				const spell=spells.find(item=>item.id===spellId);
+				const dx=aim.x-caster.x,dy=aim.y-caster.y,length=Math.hypot(dx,dy)||1;
+				caster.facing=Math.atan2(dy,dx);
+				bolts.push({spell:spell.id,owner:caster.id,x:caster.x+Math.cos(caster.facing)*20,y:caster.y+Math.sin(caster.facing)*20,vx:dx/length*spell.speed,vy:dy/length*spell.speed,life:1.15,hitIds:[]});
+				for(let i=0;i<3;i++) particles.push({x:caster.x+Math.cos(caster.facing)*22,y:caster.y+Math.sin(caster.facing)*22,vx:Math.cos(caster.facing)*(35+random()*80)+(random()-.5)*40,vy:Math.sin(caster.facing)*(35+random()*80)+(random()-.5)*40,life:.2,max:.33,color:spell.color,size:2+random()*2});
+			}
+			function fireSpell(caster=player,aim=pointer,spellId=activeSpell) {
+				const spell=spells.find(item=>item.id===spellId);
+				if(!running||!spell||!unlockedSpells.has(spell.id)||caster.shotTimer>0)return false;
+				caster.spellId=spell.id;cast(caster,aim,spell.id);caster.shotTimer=spell.cooldown;
+				return true;
+			}
+			function saveProgress() {
+				try {
+					localStorage.setItem('stormbound-save',JSON.stringify({coins,unlocked:[...unlockedSpells],avatars:[...ownedAvatars],pets:[...ownedPets],activeAvatar,activePet,activeQuestId,questProgress}));
+				} catch {}
+			}
+			function loadProgress() {
+				try {
+					const data=JSON.parse(localStorage.getItem('stormbound-save')||'{}');
+					coins=Math.max(0,Math.floor(Number(data.coins)||0));
+					for(const id of data.unlocked||[]) if(spells.some(spell=>spell.id===id)) unlockedSpells.add(id);
+					for(const id of data.avatars||[]) if(avatars.some(avatar=>avatar.id===id)) ownedAvatars.add(id);
+					for(const id of data.pets||[]) if(pets.some(pet=>pet.id===id)) ownedPets.add(id);
+					if(ownedAvatars.has(data.activeAvatar)) activeAvatar=data.activeAvatar;
+					if(ownedPets.has(data.activePet)) activePet=data.activePet;
+					if(quests.some(quest=>quest.id===data.activeQuestId)) activeQuestId=data.activeQuestId;
+					questProgress=Math.max(0,Math.floor(Number(data.questProgress)||0));
+				} catch {}
+				player.maxHealth=100+(pets.find(pet=>pet.id===activePet)?.health||0);
+				player.health=player.maxHealth;
+				syncHealth();
+				updateCoinUI();
+			}
+			function syncHealth() {
+				healthText.textContent=Math.ceil(player.health);
+				healthFill.style.width=`${player.health/player.maxHealth*100}%`;
+				healthBar.setAttribute('aria-valuemax',player.maxHealth);
+				healthBar.setAttribute('aria-valuenow',Math.ceil(player.health));
+			}
+			function updateCoinUI() { coinText.textContent=String(coins).padStart(3,'0'); }
+			function setActiveSpell(id) {
+				if(!unlockedSpells.has(id)) return;
+				activeSpell=id;player.spellId=id;
+				updateQuestUI();
+				renderSpellbar();
+			}
+			function renderSpellbar() {
+				spellbar.replaceChildren();
+				spells.forEach((spell,index)=>{
+					const button=document.createElement('button');
+					button.type='button';button.className='spell-pick';button.style.setProperty('--spell-color',spell.color);
+					button.disabled=!unlockedSpells.has(spell.id);button.setAttribute('aria-pressed',String(activeSpell===spell.id));
+					button.setAttribute('aria-label',`${spell.name}, ${spell.element}${button.disabled?', locked':''}`);
+					const key=document.createElement('span');key.className='spell-key';key.textContent=String(index+1);
+					button.append(key,document.createTextNode(spell.name));
+					button.addEventListener('click',()=>setActiveSpell(spell.id));
+					spellbar.append(button);
+				});
 			}
 			function updateQuestUI() {
-				questText.textContent = questState==='idle' ? 'Quest: Find Elder Rowan in the woods.' : questState==='active' ? `Quest: Clear wisps ${questProgress}/5` : questState==='ready' ? 'Quest: Return to Elder Rowan for your spell.' : 'Quest complete: Chain Lightning learned!';
+				const quest=quests.find(item=>item.id===activeQuestId);
+				questText.textContent=!quest?'Quest: Choose a spell trial from Elder Rowan.' : questProgress>=quest.goal?`Quest complete: Return for ${spells.find(item=>item.id===quest.reward).name}.`:`Quest: ${quest.name} · ${questProgress}/${quest.goal}`;
 				const nearby=Math.hypot(player.x-elder.x,player.y-elder.y)<76;
-				questPrompt.textContent=nearby ? `E · ${questState==='idle'?'Speak with Rowan':questState==='ready'?'Claim your spell':'Speak with Rowan'}` : 'Find Elder Rowan to the west';
-				spellText.textContent=`Spell: ${activeSpell==='chain'?'Chain Lightning':'Spark'} · ${spellUnlocked?'1 / 2 to switch':'Chain Lightning locked'}`;
+				questPrompt.textContent=nearby?'E · Rowan’s quests':'Find Elder Rowan to the west';
+				spellText.textContent=`Spell: ${spells.find(item=>item.id===activeSpell).name} · ${unlockedSpells.size}/${spells.length} learned`;
 			}
-			function interact() {
+			function renderQuests() {
+				questOptions.replaceChildren();
+				for(const quest of quests) {
+					const row=document.createElement('article');row.className='quest-option';
+					const info=document.createElement('div');const title=document.createElement('h3');title.textContent=quest.name;
+					const detail=document.createElement('p');detail.textContent=quest.description;info.append(title,detail);
+					const action=document.createElement('button');action.type='button';action.className='quest-action';action.dataset.quest=quest.id;
+					const spell=spells.find(item=>item.id===quest.reward);
+						detail.textContent+=` · ${spell.element} spell`;
+					if(unlockedSpells.has(quest.reward)) { action.textContent='Learned';action.disabled=true; }
+					else if(activeQuestId===quest.id&&questProgress>=quest.goal) action.textContent='Claim spell';
+					else if(activeQuestId===quest.id) { action.textContent=`${questProgress}/${quest.goal}`;action.disabled=true; }
+					else if(activeQuestId) { action.textContent='Quest active';action.disabled=true; }
+					else action.textContent='Accept quest';
+					row.append(info,action);questOptions.append(row);
+				}
+			}
+			function openQuestMenu() {
 				if(!running||Math.hypot(player.x-elder.x,player.y-elder.y)>=76) return;
-				if(questState==='idle') { questState='active'; questProgress=0; }
-				else if(questState==='ready') { questState='complete'; spellUnlocked=true; activeSpell='chain'; }
-				updateQuestUI();
+				shopOverlay.hidden=true;renderQuests();questOverlay.hidden=false;
+			}
+			function closeQuestMenu() { questOverlay.hidden=true; }
+			function interact() { openQuestMenu(); }
+			function handleQuestAction(id,actor=player) {
+				if(networkRole==='guest') { sendRoomMessage({type:'quest',id});questOverlay.hidden=true;return; }
+				if(Math.hypot(actor.x-elder.x,actor.y-elder.y)>=76) return;
+				const quest=quests.find(item=>item.id===id);
+				if(!quest)return;
+				if(activeQuestId===id&&questProgress>=quest.goal) {
+					unlockedSpells.add(quest.reward);activeSpell=quest.reward;player.spellId=activeSpell;activeQuestId=null;questProgress=0;
+					renderSpellbar();saveProgress();
+				} else if(!activeQuestId&&!unlockedSpells.has(quest.reward)) {
+					activeQuestId=id;questProgress=0;saveProgress();questOverlay.hidden=true;
+				}
+				updateQuestUI();renderQuests();
+			}
+			function renderShop() {
+				shopOptions.replaceChildren();
+				const addItem=(kind,item)=>{
+					const owned=(kind==='avatar'?ownedAvatars:ownedPets).has(item.id);
+					const active=kind==='avatar'?activeAvatar===item.id:activePet===item.id;
+					const row=document.createElement('article');row.className='quest-option';
+					const info=document.createElement('div');const title=document.createElement('h3');title.textContent=item.name;
+					const detail=document.createElement('p');detail.textContent=kind==='pet'?`Adds ${item.health} max health · ${item.price} coins`: `Wizard appearance · ${item.price} coins`;info.append(title,detail);
+					const action=document.createElement('button');action.type='button';action.className='quest-action';action.dataset.kind=kind;action.dataset.item=item.id;
+					if(active) { action.textContent='Equipped';action.disabled=true; }
+					else if(owned) action.textContent='Equip';
+					else { action.textContent=`Buy · ${item.price}`;action.disabled=coins<item.price; }
+					row.append(info,action);shopOptions.append(row);
+				};
+				for(const avatar of avatars) addItem('avatar',avatar);
+				for(const pet of pets) addItem('pet',pet);
+			}
+			function openShop() { if(!running)return;questOverlay.hidden=true;renderShop();shopOverlay.hidden=false; }
+			function equipShopItem(kind,id) {
+				if(networkRole==='guest') { sendRoomMessage({type:'shop',kind,id});return; }
+				const inventory=kind==='avatar'?ownedAvatars:ownedPets;
+				const item=(kind==='avatar'?avatars:pets).find(entry=>entry.id===id);
+				if(!item)return;
+				if(!inventory.has(id)) { if(coins<item.price)return;coins-=item.price;inventory.add(id); }
+				if(kind==='avatar') activeAvatar=id;
+				else {
+					const previousMax=player.maxHealth;activePet=id;
+					player.maxHealth=100+(item.health||0);
+					player.health=Math.min(player.maxHealth,player.health+Math.max(0,player.maxHealth-previousMax));
+					syncHealth();
+				}
+				updateCoinUI();saveProgress();renderShop();
+			}
+			function appendChatMessage(name,text,system=false) {
+				const line=document.createElement('div');line.className=system?'chat-message chat-system':'chat-message';
+				if(system)line.textContent=text;
+				else { const sender=document.createElement('strong');sender.textContent=`${name}: `;const body=document.createElement('span');body.textContent=text;line.append(sender,body); }
+				chatLog.append(line);while(chatLog.children.length>60)chatLog.firstElementChild.remove();chatLog.scrollTop=chatLog.scrollHeight;
+			}
+			function sendRoomMessage(message) {
+				if(gameSocket?.readyState===WebSocket.OPEN)gameSocket.send(JSON.stringify(message));
+			}
+			async function chooseRegion(roomCode='') {
+				const response=await fetch(`${directoryUrl}/regions`,{cache:'no-store'});
+				if(!response.ok)throw new Error('The game server directory is unavailable.');
+				const regions=await response.json();
+				if(!Array.isArray(regions)||!regions.length)throw new Error('No game regions are configured.');
+				if(roomCode) {
+					const requested=roomCode.split('-')[0].toLowerCase();
+					const match=regions.find(region=>region.id.toLowerCase()===requested);
+					if(!match)throw new Error('This room code names a region that is not configured.');
+					return match;
+				}
+				const measured=await Promise.all(regions.map(async region=>{
+					const start=performance.now();
+					try {
+						const health=await fetch(region.healthUrl,{cache:'no-store',signal:AbortSignal.timeout(3000)});
+						if(!health.ok)throw new Error('unavailable');
+						return {region,latency:performance.now()-start};
+					} catch { return null; }
+				}));
+				const available=measured.filter(Boolean).sort((a,b)=>a.latency-b.latency);
+				if(!available.length)throw new Error('No regional game server responded.');
+				return available[0].region;
+			}
+			async function connectToRoom(mode,roomCode='') {
+				if(gameSocket) { networkStatus.textContent='Already connected to a room.';return; }
+				hostButton.disabled=true;quickJoinButton.disabled=true;joinButton.disabled=true;networkStatus.textContent='Finding the nearest game server…';
+				try {
+					const region=await chooseRegion(roomCode);
+					const url=new URL(region.wsUrl);url.pathname='/game';url.search='';
+					url.searchParams.set('mode',mode);url.searchParams.set('name',nameInput.value.trim()||'Wizard');
+					if(roomCode)url.searchParams.set('room',roomCode.trim().toUpperCase());
+					networkStatus.textContent=`Connecting to ${region.name}…`;
+					gameSocket=new WebSocket(url);
+					gameSocket.addEventListener('open',()=>{networkStatus.textContent=`Connected to ${region.name}; entering room…`;});
+					gameSocket.addEventListener('message',event=>{
+						try { handleRoomMessage(JSON.parse(event.data)); } catch { appendChatMessage('', 'Invalid server message received.', true); }
+					});
+					gameSocket.addEventListener('error',()=>{networkStatus.textContent=`Could not reach ${region.name}; check the multiplayer server URL.`;});
+					gameSocket.addEventListener('close',()=>{
+						if(inputTimer)clearInterval(inputTimer);inputTimer=null;chatInput.disabled=true;chatSend.disabled=true;
+						if(networkRole!=='offline')networkStatus.textContent='Disconnected from room.';
+						networkRole='offline';gameSocket=null;currentRoom='';
+						hostButton.disabled=false;quickJoinButton.disabled=false;joinButton.disabled=false;
+					});
+				} catch(error) {
+					networkStatus.textContent=`${error.message} Configure a hosted game server to play online.`;
+					hostButton.disabled=false;quickJoinButton.disabled=false;joinButton.disabled=false;
+				}
+			}
+			function addRemotePlayer(info) {
+				if(remotePlayers.some(actor=>actor.id===info.id))return;
+				const index=remotePlayers.length+1;
+				remotePlayers.push({id:info.id,name:info.name||'Wizard',x:player.x+index*32,y:player.y,radius:15,speed:245,health:player.health,maxHealth:player.maxHealth,invulnerable:0,facing:0,spellId:'spark',avatar:'sage',shotTimer:0,input:{dx:0,dy:0,aimX:player.x,aimY:player.y,fire:false,spell:'spark'}});
+			}
+			function handleRoomMessage(message) {
+				if(message.type==='welcome') {
+					networkRole=message.role;currentRoom=message.room;localPeerId=message.playerId;player.id=localPeerId;player.name=nameInput.value.trim()||'Wizard';
+					roomInput.value=currentRoom;networkStatus.textContent=`${message.region.name} · ${message.players.length}/${message.maxPlayers} players · ${currentRoom}`;
+					chatBox.hidden=false;chatInput.disabled=false;chatSend.disabled=false;appendChatMessage('',`Joined ${currentRoom} in ${message.region.name}.`,true);
+					for(const member of message.players)if(member.id!==localPeerId)addRemotePlayer(member);
+					if(inputTimer)clearInterval(inputTimer);inputTimer=setInterval(sendGuestInput,50);
+					if(networkRole==='guest') { overlayTitle.textContent='Room joined';overlayMessage.textContent='Wait for the host to start the game.';startButton.textContent='Ask host to start'; }
+					else broadcastSnapshot();
+					updateQuestUI();draw();return;
+				}
+				if(message.type==='player_joined') {
+					addRemotePlayer(message.player);appendChatMessage('',`${message.player.name} joined the room.`,true);
+					if(networkRole==='host')broadcastSnapshot();return;
+				}
+				if(message.type==='player_left') { remotePlayers=remotePlayers.filter(actor=>actor.id!==message.playerId);appendChatMessage('',`${message.name||'A wizard'} left the room.`,true);return; }
+				if(message.type==='chat') { appendChatMessage(message.name,message.text);return; }
+				if(message.type==='snapshot'&&networkRole==='guest') { applySnapshot(message);return; }
+				if(message.type==='input'&&networkRole==='host') {
+					const actor=remotePlayers.find(item=>item.id===message.playerId);if(!actor)return;
+					const fire=Boolean(message.fire);
+					actor.input={dx:Math.max(-1,Math.min(1,Number(message.dx)||0)),dy:Math.max(-1,Math.min(1,Number(message.dy)||0)),aimX:Number(message.aimX)||actor.x,aimY:Number(message.aimY)||actor.y,fire,fireQueued:Boolean(actor.input?.fireQueued)||(fire&&!actor.input?.fire),spell:unlockedSpells.has(message.spell)?message.spell:'spark'};
+					actor.name=message.playerName||actor.name;return;
+				}
+				if(message.type==='quest'&&networkRole==='host') { const actor=remotePlayers.find(item=>item.id===message.playerId);if(actor)handleQuestAction(message.id,actor);return; }
+				if(message.type==='shop'&&networkRole==='host') { equipShopItem(message.kind,message.id);return; }
+				if(message.type==='start_request'&&networkRole==='host') { startGame();return; }
+				if(message.type==='room_closed') { appendChatMessage('',message.reason||'The room closed.',true);running=false;overlay.hidden=false;return; }
+				if(message.type==='error')networkStatus.textContent=message.message;
+			}
+			function applySnapshot(snapshot) {
+				const previousSpell=activeSpell,previousUnlockCount=unlockedSpells.size;
+				const own=snapshot.players.find(actor=>actor.id===localPeerId);
+				if(own)Object.assign(player,own);
+				remotePlayers=snapshot.players.filter(actor=>actor.id!==localPeerId);
+				enemies=snapshot.enemies;bolts=snapshot.bolts;arcs=snapshot.arcs;particles=snapshot.particles;coinDrops=snapshot.coinDrops;
+				score=snapshot.score;coins=snapshot.coins;wave=snapshot.wave;activeQuestId=snapshot.activeQuestId;questProgress=snapshot.questProgress;
+				player.health=snapshot.health;player.maxHealth=snapshot.maxHealth;activeAvatar=snapshot.activeAvatar;activePet=snapshot.activePet;
+				unlockedSpells.clear();for(const id of snapshot.unlockedSpells)unlockedSpells.add(id);
+				activeSpell=player.spellId||'spark';scoreText.textContent=String(score).padStart(3,'0');waveText.textContent=String(wave).padStart(2,'0');updateCoinUI();syncHealth();
+				if(previousSpell!==activeSpell||previousUnlockCount!==unlockedSpells.size)renderSpellbar();
+				updateQuestUI();if(!questOverlay.hidden)renderQuests();if(!shopOverlay.hidden)renderShop();
+				if(snapshot.running){running=true;overlay.hidden=true;if(!frameId)frameId=requestAnimationFrame(loop);}else running=false;
+			}
+			function broadcastSnapshot() {
+				if(networkRole!=='host')return;
+				sendRoomMessage({type:'snapshot',running,players:[player,...remotePlayers],enemies,bolts,arcs,particles,coinDrops,score,coins,wave,activeQuestId,questProgress,health:player.health,maxHealth:player.maxHealth,activeAvatar,activePet,unlockedSpells:[...unlockedSpells]});
+			}
+			function sendGuestInput() {
+				if(networkRole!=='guest'||gameSocket?.readyState!==WebSocket.OPEN)return;
+				sendRoomMessage({type:'input',dx:Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy:Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup')),aimX:pointer.x,aimY:pointer.y,fire:pointer.down||keys.has(' '),spell:activeSpell});
 			}
 			function burst(x,y,color,count=10) {
 				for(let i=0;i<count;i++) { const angle=random()*Math.PI*2,speed=35+random()*145; particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:.25+random()*.42,max:.67,color,size:1.5+random()*3}); }
@@ -141,48 +503,74 @@
 			function defeatEnemy(enemy) {
 				if(enemy.health<=0) return;
 				enemy.health=0; score++; scoreText.textContent=String(score).padStart(3,'0');
-				if(questState==='active') { questProgress++; if(questProgress>=5) questState='ready'; updateQuestUI(); }
+				if(activeQuestId) {
+					const quest=quests.find(item=>item.id===activeQuestId);
+					questProgress=Math.min(quest.goal,questProgress+1);updateQuestUI();saveProgress();
+				}
+				coinDrops.push({x:enemy.x,y:enemy.y,vx:(random()-.5)*38,vy:-30-random()*25,value:random()<.18?3:1,life:14});
 				burst(enemy.x,enemy.y,'#94f3d0',13);
 			}
-			function addArc(from,to) {
+			function addArc(from,to,color='#9fffea') {
 				const dx=to.x-from.x,dy=to.y-from.y,length=Math.hypot(dx,dy)||1;
 				const points=[{x:from.x,y:from.y}];
 				for(let i=1;i<5;i++) { const ratio=i/5,offset=(random()-.5)*22; points.push({x:from.x+dx*ratio-dy/length*offset,y:from.y+dy*ratio+dx/length*offset}); }
-				points.push({x:to.x,y:to.y}); arcs.push({points,life:.2});
+				points.push({x:to.x,y:to.y}); arcs.push({points,life:.2,color});
+			}
+			function hitWithSpell(spell,target) {
+				if(spell.splashRadius) {
+					for(const enemy of enemies) if(enemy.health>0&&Math.hypot(enemy.x-target.x,enemy.y-target.y)<=spell.splashRadius) defeatEnemy(enemy);
+					burst(target.x,target.y,spell.color,18);
+				} else defeatEnemy(target);
+				if(spell.chainJumps) {
+					let previous=target;
+					for(let jump=0;jump<spell.chainJumps;jump++) {
+						let next=null,nearest=spell.id==='cyber'?210:165;
+						for(const enemy of enemies) { const distance=Math.hypot(enemy.x-previous.x,enemy.y-previous.y);if(enemy.health>0&&distance<nearest){next=enemy;nearest=distance;} }
+						if(!next)break;addArc(previous,next,spell.color);defeatEnemy(next);previous=next;
+					}
+				}
 			}
 			function update(dt) {
 				elapsed+=dt; wave=1+Math.floor(score/8); waveText.textContent=String(wave).padStart(2,'0');
-				const mx=(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0);
-				const my=(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0),len=Math.hypot(mx,my)||1;
-				player.x=Math.max(26,Math.min(W-26,player.x+mx/len*player.speed*dt)); player.y=Math.max(32,Math.min(H-26,player.y+my/len*player.speed*dt));
-				player.invulnerable=Math.max(0,player.invulnerable-dt); shotTimer-=dt;
-				if(pointer.down&&shotTimer<=0) { cast(); shotTimer=activeSpell==='chain'?.85:.2; }
+				const actors=[player,...remotePlayers];
+				for(const actor of actors) {
+					const input=actor===player?{dx:Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy:Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup')),aimX:pointer.x,aimY:pointer.y,fire:pointer.down,spell:activeSpell}:actor.input||{};
+					const length=Math.hypot(input.dx||0,input.dy||0)||1;
+					actor.x=Math.max(28,Math.min(WORLD_W-28,actor.x+(input.dx||0)/length*actor.speed*dt));actor.y=Math.max(34,Math.min(WORLD_H-28,actor.y+(input.dy||0)/length*actor.speed*dt));
+					actor.invulnerable=Math.max(0,(actor.invulnerable||0)-dt);actor.shotTimer=Math.max(0,(actor.shotTimer||0)-dt);
+					if(input.aimX!==undefined&&input.aimY!==undefined)actor.facing=Math.atan2(input.aimY-actor.y,input.aimX-actor.x);
+					if(input.fire||input.fireQueued) {
+						const spellId=unlockedSpells.has(input.spell)?input.spell:'spark';
+						if(fireSpell(actor,{x:input.aimX??pointer.x,y:input.aimY??pointer.y},spellId)&&actor.input)actor.input.fireQueued=false;
+					}
+				}
 				spawnTimer-=dt;
 				if(spawnTimer<=0) { spawnEnemy(); spawnTimer=Math.max(.42,1.3-wave*.07)*(.7+random()*.5); }
 				for(const bolt of bolts) {
 					bolt.x+=bolt.vx*dt; bolt.y+=bolt.vy*dt; bolt.life-=dt;
-					for(const enemy of enemies) if(enemy.health>0&&Math.hypot(enemy.x-bolt.x,enemy.y-bolt.y)<enemy.radius+6) {
-						defeatEnemy(enemy);
-						if(bolt.chain) {
-							let previous=enemy;
-							for(let jump=0;jump<2;jump++) {
-								let target=null,nearest=165;
-								for(const candidate of enemies) { const distance=Math.hypot(candidate.x-previous.x,candidate.y-previous.y); if(candidate.health>0&&distance<nearest) { target=candidate; nearest=distance; } }
-								if(!target) break; addArc(previous,target); defeatEnemy(target); previous=target;
-							}
+					const spell=spells.find(item=>item.id===bolt.spell);
+					for(const enemy of enemies) {
+						if(enemy.health<=0||bolt.hitIds.includes(enemy.id))continue;
+						if(Math.hypot(enemy.x-bolt.x,enemy.y-bolt.y)<enemy.radius+8+Math.hypot(bolt.vx,bolt.vy)*dt*.3) {
+							bolt.hitIds.push(enemy.id);hitWithSpell(spell,enemy);
+							if(bolt.hitIds.length>(spell.pierce||0)){bolt.life=0;break;}
 						}
-						bolt.life=0; break;
 					}
 				}
-				bolts=bolts.filter(b=>b.life>0&&b.x>-20&&b.x<W+20&&b.y>-20&&b.y<H+20);
+				bolts=bolts.filter(b=>b.life>0&&b.x>-20&&b.x<WORLD_W+20&&b.y>-20&&b.y<WORLD_H+20);
+				for(const drop of coinDrops) {
+					drop.x+=drop.vx*dt;drop.y+=drop.vy*dt;drop.vy+=75*dt;drop.life-=dt;
+					if(Math.hypot(drop.x-player.x,drop.y-player.y)<player.radius+12) { coins+=drop.value;drop.life=0;updateCoinUI();saveProgress();burst(drop.x,drop.y,'#f5ca75',7); }
+				}
+				coinDrops=coinDrops.filter(drop=>drop.life>0);
 				for(const enemy of enemies) {
 					if(enemy.health<=0) continue;
-					enemy.phase+=dt*4; const angle=Math.atan2(player.y-enemy.y,player.x-enemy.x);
-					enemy.x+=Math.cos(angle)*enemy.speed*dt; enemy.y+=Math.sin(angle)*enemy.speed*dt+Math.sin(enemy.phase)*8*dt;
-					if(player.invulnerable<=0&&Math.hypot(enemy.x-player.x,enemy.y-player.y)<enemy.radius+player.radius-3) {
-						player.health=Math.max(0,player.health-17); player.invulnerable=.85;
-						healthText.textContent=player.health; healthFill.style.width=`${player.health}%`; healthBar.setAttribute('aria-valuenow',player.health);
-						burst(player.x,player.y,'#ffb17c',12); enemy.x-=Math.cos(angle)*44; enemy.y-=Math.sin(angle)*44;
+					const target=actors.reduce((nearest,actor)=>Math.hypot(actor.x-enemy.x,actor.y-enemy.y)<Math.hypot(nearest.x-enemy.x,nearest.y-enemy.y)?actor:nearest,actors[0]);
+					enemy.phase+=dt*4;const angle=Math.atan2(target.y-enemy.y,target.x-enemy.x);
+					enemy.x+=Math.cos(angle)*enemy.speed*dt;enemy.y+=Math.sin(angle)*enemy.speed*dt+Math.sin(enemy.phase)*8*dt;
+					if(target.invulnerable<=0&&Math.hypot(enemy.x-target.x,enemy.y-target.y)<enemy.radius+target.radius-3) {
+						player.health=Math.max(0,player.health-17);target.invulnerable=.85;syncHealth();
+						burst(target.x,target.y,'#ffb17c',12);enemy.x-=Math.cos(angle)*44;enemy.y-=Math.sin(angle)*44;
 						if(player.health===0) endGame();
 					}
 				}
@@ -192,27 +580,50 @@
 				for(const arc of arcs) arc.life-=dt; arcs=arcs.filter(a=>a.life>0);
 			}
 			function drawGround() {
-				ctx.fillStyle='#172622'; ctx.fillRect(0,0,W,H); ctx.strokeStyle='#b3ddba0d'; ctx.lineWidth=1;
-				for(let x=0;x<W;x+=48) { ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
-				for(let y=0;y<H;y+=48) { ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
-				for(let i=0;i<78;i++) { const x=(i*193+37)%W,y=(i*127+21)%H;ctx.fillStyle=i%4===0?'#b5c77a25':'#c9dcc314';ctx.beginPath();ctx.ellipse(x,y,i%3+1,2,-.5,0,Math.PI*2);ctx.fill(); }
-				const glow=ctx.createRadialGradient(player.x,player.y,30,player.x,player.y,340); glow.addColorStop(0,'#adcda00c');glow.addColorStop(1,'#07100e99');ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
+				ctx.fillStyle='#172622'; ctx.fillRect(0,0,WORLD_W,WORLD_H); ctx.strokeStyle='#b3ddba0d'; ctx.lineWidth=1;
+				for(let x=0;x<WORLD_W;x+=48) { ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,WORLD_H);ctx.stroke(); }
+				for(let y=0;y<WORLD_H;y+=48) { ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(WORLD_W,y);ctx.stroke(); }
+				for(let i=0;i<310;i++) { const x=(i*193+37)%WORLD_W,y=(i*127+21)%WORLD_H;ctx.fillStyle=i%4===0?'#b5c77a25':'#c9dcc314';ctx.beginPath();ctx.ellipse(x,y,i%3+1,2,-.5,0,Math.PI*2);ctx.fill(); }
+				const glow=ctx.createRadialGradient(player.x,player.y,30,player.x,player.y,340); glow.addColorStop(0,'#adcda00c');glow.addColorStop(1,'#07100e99');ctx.fillStyle=glow;ctx.fillRect(0,0,WORLD_W,WORLD_H);
 			}
-			function drawWizard(x,y,elderForm=false) {
+			function drawWizard(x,y,elderForm=false,avatarId=activeAvatar) {
+				const outfit=avatars.find(item=>item.id===avatarId)||avatars[0];
 				ctx.save();ctx.translate(x,y);
 				ctx.fillStyle='#0007';ctx.beginPath();ctx.ellipse(0,13,19,8,0,0,Math.PI*2);ctx.fill();
-				ctx.fillStyle=elderForm?'#9b7b55':'#536b70';ctx.beginPath();ctx.ellipse(0,3,14,17,0,0,Math.PI*2);ctx.fill();
+				ctx.fillStyle=elderForm?'#9b7b55':outfit.robe;ctx.beginPath();ctx.ellipse(0,3,14,17,0,0,Math.PI*2);ctx.fill();
 				ctx.fillStyle=elderForm?'#dec69b':'#b7c18e';ctx.beginPath();ctx.arc(5,-8,8,0,Math.PI*2);ctx.fill();
-				ctx.fillStyle=elderForm?'#5c4c43':'#283b3c';ctx.beginPath();ctx.moveTo(-8,-12);ctx.lineTo(3,-34);ctx.lineTo(17,-10);ctx.closePath();ctx.fill();
+				ctx.fillStyle=elderForm?'#5c4c43':outfit.hat;ctx.beginPath();ctx.moveTo(-8,-12);ctx.lineTo(3,-34);ctx.lineTo(17,-10);ctx.closePath();ctx.fill();
 				ctx.fillStyle=elderForm?'#e8c879':'#f1c778';ctx.beginPath();ctx.ellipse(5,-12,14,3,-.12,0,Math.PI*2);ctx.fill();ctx.restore();
+			}
+			function drawPet() {
+				const pet=pets.find(item=>item.id===activePet);if(!pet)return;
+				const bob=Math.sin(elapsed*4)*4,x=player.x-25,y=player.y+7+bob;
+				ctx.fillStyle=pet.color;ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.fill();
+				if(pet.id==='fox') { ctx.beginPath();ctx.moveTo(x-6,y-5);ctx.lineTo(x-8,y-14);ctx.lineTo(x-1,y-8);ctx.moveTo(x+2,y-8);ctx.lineTo(x+8,y-14);ctx.lineTo(x+7,y-4);ctx.fill(); }
+				if(pet.id==='turtle') { ctx.strokeStyle='#526e46';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.stroke(); }
 			}
 			function drawElder() {
 				const nearby=Math.hypot(player.x-elder.x,player.y-elder.y)<76;
 				if(nearby) { ctx.strokeStyle='#f5ca7590';ctx.lineWidth=2;ctx.beginPath();ctx.arc(elder.x,elder.y,30+Math.sin(elapsed*3)*2,0,Math.PI*2);ctx.stroke(); }
 				drawWizard(elder.x,elder.y,true);ctx.fillStyle='#e4e6bd';ctx.font='500 10px monospace';ctx.textAlign='center';ctx.fillText('ELDER ROWAN',elder.x,elder.y+39);
 			}
+			function drawMinimap(cameraX,cameraY) {
+				const size=150,scale=size/WORLD_W;
+				miniCtx.clearRect(0,0,size,size);miniCtx.fillStyle='#101a17';miniCtx.fillRect(0,0,size,size);
+				miniCtx.fillStyle='#20332b';miniCtx.fillRect(3,3,size-6,size-6);
+				miniCtx.strokeStyle='#a5bd9550';miniCtx.lineWidth=.6;
+				for(let i=1;i<4;i++){miniCtx.beginPath();miniCtx.moveTo(i*size/4,0);miniCtx.lineTo(i*size/4,size);miniCtx.moveTo(0,i*size/4);miniCtx.lineTo(size,i*size/4);miniCtx.stroke();}
+				miniCtx.strokeStyle='#ecedc6';miniCtx.lineWidth=1;miniCtx.strokeRect(cameraX*scale,cameraY*scale,W*scale,H*scale);
+				miniCtx.fillStyle='#f5ca75';miniCtx.beginPath();miniCtx.arc(elder.x*scale,elder.y*scale,3,0,Math.PI*2);miniCtx.fill();
+				miniCtx.fillStyle='#e7785c';for(const enemy of enemies){miniCtx.beginPath();miniCtx.arc(enemy.x*scale,enemy.y*scale,1.7,0,Math.PI*2);miniCtx.fill();}
+				miniCtx.fillStyle='#f5ca75';for(const drop of coinDrops){miniCtx.beginPath();miniCtx.arc(drop.x*scale,drop.y*scale,1.5,0,Math.PI*2);miniCtx.fill();}
+				for(const actor of [player,...remotePlayers]){miniCtx.fillStyle=actor===player?'#a4f0ce':'#65c9f2';miniCtx.beginPath();miniCtx.arc(actor.x*scale,actor.y*scale,3,0,Math.PI*2);miniCtx.fill();}
+				miniCtx.strokeStyle='#e6eddb';miniCtx.lineWidth=1.5;miniCtx.strokeRect(1,1,size-2,size-2);
+			}
 			function draw() {
-				ctx.clearRect(0,0,W,H);drawGround();
+				const cameraX=Math.max(0,Math.min(WORLD_W-W,player.x-W/2));
+				const cameraY=Math.max(0,Math.min(WORLD_H-H,player.y-H/2));
+				ctx.clearRect(0,0,W,H);ctx.save();ctx.translate(-cameraX,-cameraY);drawGround();
 				for(const p of particles) { ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill(); }
 				ctx.globalAlpha=1;
 				for(const e of enemies) {
@@ -220,37 +631,91 @@
 					ctx.fillStyle='#dc7657';ctx.beginPath();ctx.ellipse(e.x,e.y,e.radius*.82,e.radius*1.05,Math.sin(e.phase)*.2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffdda0';ctx.beginPath();ctx.arc(e.x-4,e.y-2,1.8,0,Math.PI*2);ctx.arc(e.x+4,e.y-2,1.8,0,Math.PI*2);ctx.fill();
 				}
 				drawElder();
-				for(const a of arcs) { ctx.globalAlpha=a.life/.2;ctx.strokeStyle='#9fffea';ctx.lineWidth=3;ctx.shadowColor='#7fffe5';ctx.shadowBlur=14;ctx.beginPath();ctx.moveTo(a.points[0].x,a.points[0].y);for(let i=1;i<a.points.length;i++)ctx.lineTo(a.points[i].x,a.points[i].y);ctx.stroke(); }
+				for(const drop of coinDrops) {
+					ctx.globalAlpha=Math.min(1,drop.life);ctx.fillStyle='#f5ca75';ctx.shadowColor='#f5ca75';ctx.shadowBlur=12;
+					ctx.beginPath();ctx.arc(drop.x,drop.y,7,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#684b20';ctx.font='bold 8px monospace';ctx.textAlign='center';ctx.fillText('¢',drop.x,drop.y+3);
+				}
+				ctx.globalAlpha=1;
+				for(const a of arcs) { ctx.globalAlpha=a.life/.2;ctx.strokeStyle=a.color;ctx.lineWidth=3;ctx.shadowColor=a.color;ctx.shadowBlur=14;ctx.beginPath();ctx.moveTo(a.points[0].x,a.points[0].y);for(let i=1;i<a.points.length;i++)ctx.lineTo(a.points[i].x,a.points[i].y);ctx.stroke(); }
 				ctx.globalAlpha=1;ctx.shadowBlur=0;
-				for(const b of bolts) { ctx.lineCap='round';ctx.strokeStyle=b.chain?'#f5ca7580':'#70e9d080';ctx.lineWidth=10;ctx.shadowColor=b.chain?'#f5ca75':'#7fffe5';ctx.shadowBlur=18;ctx.beginPath();ctx.moveTo(b.x-b.vx*.035,b.y-b.vy*.035);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.strokeStyle=b.chain?'#fff1be':'#e4fff5';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(b.x-b.vx*.035,b.y-b.vy*.035);ctx.lineTo(b.x,b.y);ctx.stroke(); }
+				for(const b of bolts) { const spell=spells.find(item=>item.id===b.spell);ctx.lineCap='round';ctx.strokeStyle=spell.color+'88';ctx.lineWidth=10;ctx.shadowColor=spell.color;ctx.shadowBlur=18;ctx.beginPath();ctx.moveTo(b.x-b.vx*.035,b.y-b.vy*.035);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.strokeStyle=spell.color;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(b.x-b.vx*.035,b.y-b.vy*.035);ctx.lineTo(b.x,b.y);ctx.stroke(); }
 				ctx.shadowBlur=0;
-				if(!(player.invulnerable>0&&Math.floor(elapsed*18)%2===0)) { ctx.save();ctx.translate(player.x,player.y);ctx.rotate(player.facing);drawWizard(0,0);ctx.restore(); }
-				ctx.strokeStyle='#b7c99c66';ctx.lineWidth=2;ctx.strokeRect(8,8,W-16,H-16);
+				for(const actor of [player,...remotePlayers]) {
+					if(actor.invulnerable>0&&Math.floor(elapsed*18)%2===0)continue;
+					ctx.save();ctx.translate(actor.x,actor.y);ctx.rotate(actor.facing||0);drawWizard(0,0,false,actor.avatar||activeAvatar);ctx.restore();
+					if(actor===player)drawPet();
+				}
+				ctx.strokeStyle='#b7c99c99';ctx.lineWidth=4;ctx.strokeRect(2,2,WORLD_W-4,WORLD_H-4);ctx.restore();
+				drawMinimap(cameraX,cameraY);
 			}
 			function loop(timestamp) {
-				if(!running)return;const dt=Math.min((timestamp-(lastTime||timestamp))/1000,.04);lastTime=timestamp;update(dt);draw();if(running)frameId=requestAnimationFrame(loop);
+				if(!running)return;const dt=Math.min((timestamp-(lastTime||timestamp))/1000,.04);lastTime=timestamp;
+				if(networkRole!=='guest'&&!questOverlay.hidden&&!shopOverlay.hidden) { draw();frameId=requestAnimationFrame(loop);return; }
+				if(networkRole!=='guest')update(dt);draw();
+				if(networkRole==='host') { snapshotTimer+=dt;if(snapshotTimer>=.1){snapshotTimer=0;broadcastSnapshot();} }
+				if(running)frameId=requestAnimationFrame(loop);
 			}
 			function startGame() {
+				if(networkRole==='guest') { sendRoomMessage({type:'start_request'});networkStatus.textContent='Asked the host to start the game.';return; }
 				cancelAnimationFrame(frameId);score=0;wave=1;spawnTimer=.5;shotTimer=0;elapsed=0;lastTime=0;
-				player.x=W/2;player.y=H/2;player.health=100;player.invulnerable=0;enemies=[];bolts=[];arcs=[];particles=[];
-				scoreText.textContent='000';waveText.textContent='01';healthText.textContent='100';healthFill.style.width='100%';healthBar.setAttribute('aria-valuenow',100);
-				overlay.hidden=true;running=true;updateQuestUI();frameId=requestAnimationFrame(loop);
+				player.x=WORLD_W/2;player.y=WORLD_H/2;player.health=player.maxHealth;player.invulnerable=0;enemies=[];bolts=[];arcs=[];particles=[];coinDrops=[];
+				remotePlayers=remotePlayers.map((actor,index)=>({...actor,x:WORLD_W/2+(index+1)*32,y:WORLD_H/2,input:actor.input||{},invulnerable:0,shotTimer:0}));
+				scoreText.textContent='000';waveText.textContent='01';syncHealth();
+				overlay.hidden=true;questOverlay.hidden=true;shopOverlay.hidden=true;running=true;updateQuestUI();frameId=requestAnimationFrame(loop);
 			}
 			function endGame() {
-				running=false;overlayTitle.textContent='The woods go quiet';overlayMessage.textContent=`You gathered ${score} ${score===1?'spark':'sparks'} before the shadows caught you.`;startButton.textContent='Try again';overlay.hidden=false;
+				running=false;overlayTitle.textContent='The woods go quiet';overlayMessage.textContent=`You cleared ${score} ${score===1?'wisp':'wisps'} and collected ${coins} coins.`;startButton.textContent='Try again';overlay.hidden=false;
 			}
-			function updatePointer(event) { const rect=canvas.getBoundingClientRect();pointer.x=(event.clientX-rect.left)/rect.width*W;pointer.y=(event.clientY-rect.top)/rect.height*H; }
+			function updatePointer(event) {
+				const rect=canvas.getBoundingClientRect();
+				const cameraX=Math.max(0,Math.min(WORLD_W-W,player.x-W/2)),cameraY=Math.max(0,Math.min(WORLD_H-H,player.y-H/2));
+				pointer.x=(event.clientX-rect.left)/rect.width*W+cameraX;pointer.y=(event.clientY-rect.top)/rect.height*H+cameraY;
+			}
 			window.addEventListener('keydown',event=>{
 				const key=event.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(key))event.preventDefault();keys.add(key);
-				if(key==='e')interact();if(key==='1'){activeSpell='spark';updateQuestUI();}if(key==='2'&&spellUnlocked){activeSpell='chain';updateQuestUI();}
-				if(key===' '&&running&&shotTimer<=0){cast();shotTimer=activeSpell==='chain'?.85:.2;}
+				if(event.repeat)return;
+				if(key==='e')interact();if(key==='b')openShop();if(key==='escape'){closeQuestMenu();shopOverlay.hidden=true;}
+				if(/^[1-7]$/.test(key))setActiveSpell(spells[Number(key)-1].id);
+				if(key===' '&&running) {
+					if(networkRole==='guest')sendGuestInput();
+					else fireSpell(player,pointer,activeSpell);
+				}
 			});
 			window.addEventListener('keyup',event=>keys.delete(event.key.toLowerCase()));
 			window.addEventListener('blur',()=>{keys.clear();pointer.down=false;});
 			canvas.addEventListener('pointermove',updatePointer);
-			canvas.addEventListener('pointerdown',event=>{updatePointer(event);pointer.down=true;canvas.setPointerCapture(event.pointerId);});
-			canvas.addEventListener('pointerup',()=>pointer.down=false);canvas.addEventListener('pointercancel',()=>pointer.down=false);
-			startButton.addEventListener('click',startGame);window.addEventListener('resize',resize);resize();updateQuestUI();
+			canvas.addEventListener('pointerdown',event=>{
+				updatePointer(event);pointer.down=true;canvas.setPointerCapture(event.pointerId);
+				if(networkRole==='guest')sendGuestInput();else fireSpell(player,pointer,activeSpell);
+			});
+			canvas.addEventListener('pointerup',()=>{pointer.down=false;if(networkRole==='guest')sendGuestInput();});
+			canvas.addEventListener('pointercancel',()=>{pointer.down=false;if(networkRole==='guest')sendGuestInput();});
+			questOptions.addEventListener('click',event=>{const action=event.target.closest('[data-quest]');if(action)handleQuestAction(action.dataset.quest);});
+			shopOptions.addEventListener('click',event=>{const action=event.target.closest('[data-kind]');if(action)equipShopItem(action.dataset.kind,action.dataset.item);});
+			shopLaunch.addEventListener('click',openShop);closeQuest.addEventListener('click',closeQuestMenu);closeShop.addEventListener('click',()=>shopOverlay.hidden=true);
+			hostButton.addEventListener('click',()=>connectToRoom('host'));
+			quickJoinButton.addEventListener('click',()=>connectToRoom('quick'));
+			joinButton.addEventListener('click',()=>{
+				const code=roomInput.value.trim();
+				if(!code){networkStatus.textContent='Enter a room code to join.';return;}
+				connectToRoom('join',code);
+			});
+			roomInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();joinButton.click();}});
+			chatForm.addEventListener('submit',event=>{
+				event.preventDefault();const text=chatInput.value.trim();
+				if(!text||networkRole==='offline')return;
+				sendRoomMessage({type:'chat',text});chatInput.value='';
+			});
+			chatToggle.addEventListener('click',()=>{
+				const collapsed=chatBox.classList.toggle('collapsed');
+				chatToggle.textContent=collapsed?'+':'−';chatToggle.setAttribute('aria-label',collapsed?'Expand chat':'Collapse chat');
+			});
+			copyRoom.addEventListener('click',async()=>{
+				if(!currentRoom)return;
+				try{await navigator.clipboard.writeText(currentRoom);networkStatus.textContent=`Copied room code ${currentRoom}.`;}
+				catch{roomInput.value=currentRoom;roomInput.select();networkStatus.textContent='Room code selected; copy it to invite a friend.';}
+			});
+			startButton.addEventListener('click',startGame);window.addEventListener('resize',resize);loadProgress();renderSpellbar();updateQuestUI();resize();
 		})();
 	</script>
 </body>
