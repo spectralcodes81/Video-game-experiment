@@ -1,2 +1,2 @@
-# Video-game-experiment
-A experiment for aarush to learn more about github
+A video game about wizards
+A Great Video Game about wizards
