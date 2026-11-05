@@ -13,6 +13,12 @@
 		header { display:flex; align-items:end; justify-content:space-between; gap:20px; margin:0 0 16px; }
 		.eyebrow { margin:0 0 5px; color:var(--mint); font-size:10px; letter-spacing:2px; text-transform:uppercase; }
 		h1 { margin:0; font:400 40px/1 'DM Serif Display',Georgia,serif; }
+		.title-row { display:flex; align-items:center; gap:12px; }
+		.discord-link { display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:8px 11px; border:1px solid #5865f2; border-radius:4px; color:#e4e6ff; background:#5865f226; font-size:9px; text-decoration:none; text-transform:uppercase; transition:background 140ms ease,transform 140ms ease; }
+		.discord-link:hover { transform:translateY(-1px); background:#5865f244; }
+		.discord-link:focus-visible { outline:2px solid white; outline-offset:3px; }
+		.discord-link svg { width:17px; height:17px; flex:0 0 17px; }
+		.discord-label { white-space:nowrap; }
 		.subtitle { margin:0 0 2px; color:var(--muted); font-size:11px; }
 		.game-frame { overflow:hidden; border:1px solid #536a60; border-radius:7px; background:#15211e; box-shadow:0 24px 80px #0008,0 0 0 5px #ffffff08; }
 		.hud { display:grid; grid-template-columns:1fr auto auto 1fr; align-items:center; min-height:68px; padding:12px 18px; gap:16px; background:var(--panel); border-bottom:1px solid var(--line); }
@@ -28,6 +34,14 @@
 		.canvas-wrap { position:relative; width:min(100%,min(82vh,900px)); margin:0 auto; aspect-ratio:1/1; min-height:0; }
 		canvas { display:block; width:100%; height:100%; cursor:crosshair; }
 		#minimap { position:absolute; z-index:1; top:12px; right:12px; width:clamp(100px,16vw,150px); height:auto; aspect-ratio:1; border:1px solid #d5d8a8; border-radius:3px; background:#101a17; box-shadow:0 3px 14px #0009; pointer-events:none; }
+		.joystick-layer { position:absolute; z-index:1; inset:0; display:none; pointer-events:none; touch-action:none; }
+		.mobile .joystick-layer { display:block; }
+		.joystick { position:absolute; bottom:16px; width:clamp(108px,29vw,146px); aspect-ratio:1; border:1px solid #e8eee888; border-radius:50%; background:#111a1a88; box-shadow:inset 0 0 0 7px #ffffff08,0 4px 16px #0006; pointer-events:auto; touch-action:none; user-select:none; -webkit-user-select:none; }
+		.joystick-move { left:16px; }
+		.joystick-aim { right:16px; }
+		.joystick-label { position:absolute; top:12px; left:0; width:100%; color:#e8eee8a8; font-size:8px; text-align:center; letter-spacing:1px; pointer-events:none; }
+		.joystick-knob { position:absolute; top:50%; left:50%; width:42%; aspect-ratio:1; border:1px solid #e8eee899; border-radius:50%; background:#a4f0ce99; box-shadow:0 2px 8px #0008; transform:translate(-50%,-50%); pointer-events:none; }
+		.joystick-aim .joystick-knob { background:#f5ca7599; }
 		.chat-box { position:absolute; z-index:2; left:12px; bottom:12px; display:flex; flex-direction:column; width:min(290px,68%); max-height:210px; overflow:hidden; border:1px solid #536a60; border-radius:4px; background:#111a1ae8; box-shadow:0 4px 18px #0009; text-align:left; }
 		.chat-box[hidden] { display:none; }
 		.chat-heading { display:flex; align-items:center; justify-content:space-between; min-height:30px; padding:4px 8px; border-bottom:1px solid var(--line); color:var(--mint); font-size:9px; }
@@ -85,13 +99,13 @@
 		.key-set { display:flex; gap:3px; }
 		.footnote { margin:13px 2px 0; color:#788a82; font-size:9px; text-align:right; }
 		@keyframes rise-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-		@media(max-width:560px) { body{padding:18px 10px 24px} header{align-items:start;flex-direction:column;gap:7px} h1{font-size:34px} .hud{padding:10px;gap:6px} .stat{gap:6px} .stat-label{font-size:8px} .stat-value{font-size:12px} .questbar,.controls{padding:10px 11px;gap:8px 12px} .spellbar{padding:9px 11px}.spell-pick{flex:1 1 72px;min-width:0}.control-group{gap:5px} .canvas-wrap{width:min(100%,82vh)}.networkbar{padding:10px 11px}.networkbar input{flex:1}.quest-dialog{padding:15px}.quest-option{grid-template-columns:1fr;gap:8px}.quest-action{width:100%} }
+		@media(max-width:560px) { body{padding:18px 10px 24px} header{align-items:start;flex-direction:column;gap:7px} h1{font-size:34px}.title-row{gap:9px}.discord-link{width:36px;height:36px;padding:0}.discord-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0} .hud{padding:10px;gap:6px} .stat{gap:6px} .stat-label{font-size:8px} .stat-value{font-size:12px} .questbar,.controls{padding:10px 11px;gap:8px 12px} .spellbar{padding:9px 11px}.spell-pick{flex:1 1 72px;min-width:0}.control-group{gap:5px} .canvas-wrap{width:min(100%,82vh)}.networkbar{padding:10px 11px}.networkbar input{flex:1}.quest-dialog{padding:15px}.quest-option{grid-template-columns:1fr;gap:8px}.quest-action{width:100%} }
 		@media(prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important} }
 	</style>
 </head>
 <body>
 	<main class="shell">
-		<header><div><p class="eyebrow">A little spellcraft experiment</p><h1>Stormbound</h1></div><p class="subtitle">The old woods are crackling tonight.</p></header>
+		<header><div><p class="eyebrow">A little spellcraft experiment</p><div class="title-row"><h1>Stormbound</h1><a class="discord-link" href="https://discord.gg/Jy6bngJYJh" target="_blank" rel="noopener noreferrer" aria-label="Join the Stormbound Discord" title="Join the Stormbound Discord"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.2 5.7A18 18 0 0 1 12 4.4c2.4 0 4.7.5 6.8 1.3a16 16 0 0 1 2.1 10.1 18 18 0 0 1-5.3 2.7l-1.2-1.7m-4.8 0-1.2 1.7a18 18 0 0 1-5.3-2.7A16 16 0 0 1 5.2 5.7Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 11.5h3m-1.5-1.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.5" cy="11" r=".8" fill="currentColor"/><circle cx="17.8" cy="12.7" r=".8" fill="currentColor"/></svg><span class="discord-label">Discord</span></a></div></div><p class="subtitle">The old woods are crackling tonight.</p></header>
 		<section class="game-frame" aria-label="Stormbound wizard game">
 			<div class="hud">
 				<div class="stat"><span class="stat-label">Vitality</span><div class="health-track" role="progressbar" aria-label="Wizard health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="health-fill"></div></div><span class="stat-value" id="healthText">100</span></div>
@@ -101,6 +115,10 @@
 			</div>
 			<div class="canvas-wrap">
 				<canvas id="game" aria-label="Move with WASD or arrow keys, aim with the mouse, and click to cast lightning."></canvas>
+				<div class="joystick-layer" id="touchControls" aria-label="Touch controls" hidden>
+					<div class="joystick joystick-move" id="moveJoystick" aria-label="Move joystick"><span class="joystick-label">MOVE</span><span class="joystick-knob" id="moveKnob"></span></div>
+					<div class="joystick joystick-aim" id="aimJoystick" aria-label="Aim and cast joystick"><span class="joystick-label">AIM · CAST</span><span class="joystick-knob" id="aimKnob"></span></div>
+				</div>
 				<canvas id="minimap" aria-label="Minimap showing the full arena and nearby characters"></canvas>
 				<section class="chat-box" id="chatBox" aria-label="Room chat" hidden>
 					<div class="chat-heading"><span>Room chat</span><button class="chat-toggle" id="chatToggle" type="button" aria-label="Collapse chat">−</button></div>
@@ -151,6 +169,11 @@
 			const minimap = document.querySelector('#minimap');
 			const miniCtx = minimap.getContext('2d');
 			const wrap = document.querySelector('.canvas-wrap');
+			const touchControls = document.querySelector('#touchControls');
+			const moveJoystick = document.querySelector('#moveJoystick');
+			const aimJoystick = document.querySelector('#aimJoystick');
+			const moveKnob = document.querySelector('#moveKnob');
+			const aimKnob = document.querySelector('#aimKnob');
 			const overlay = document.querySelector('#overlay');
 			const startButton = document.querySelector('#startButton');
 			const healthText = document.querySelector('#healthText');
@@ -187,6 +210,9 @@
 			const closeShop = document.querySelector('#closeShop');
 			const W = 900, H = 900, WORLD_W = 1800, WORLD_H = 1800;
 			const keys = new Set();
+			const mobileControlsEnabled=Boolean(window.matchMedia?.('(pointer: coarse)').matches||navigator.maxTouchPoints>0);
+			const movementStick={x:0,y:0,pointerId:null,knob:moveKnob};
+			const aimStick={x:0,y:0,pointerId:null,knob:aimKnob};
 			const pointer = { x:W/2+100, y:H/2, down:false };
 			const player = { id:'host', x:WORLD_W/2, y:WORLD_H/2, radius:15, speed:245, health:100, maxHealth:100, invulnerable:0, facing:0, spellId:'spark', avatar:'sage', shotTimer:0 };
 			const elder = { x:WORLD_W/2-170, y:WORLD_H/2 };
@@ -366,7 +392,7 @@
 				for(const avatar of avatars) addItem('avatar',avatar);
 				for(const pet of pets) addItem('pet',pet);
 			}
-			function openShop() { if(!running)return;questOverlay.hidden=true;renderShop();shopOverlay.hidden=false; }
+			function openShop() { questOverlay.hidden=true;renderShop();shopOverlay.hidden=false; }
 			function equipShopItem(kind,id) {
 				if(networkRole==='guest') { sendRoomMessage({type:'shop',kind,id});return; }
 				const inventory=kind==='avatar'?ownedAvatars:ownedPets;
@@ -487,7 +513,7 @@
 				activeSpell=player.spellId||'spark';scoreText.textContent=String(score).padStart(3,'0');waveText.textContent=String(wave).padStart(2,'0');updateCoinUI();syncHealth();
 				if(previousSpell!==activeSpell||previousUnlockCount!==unlockedSpells.size)renderSpellbar();
 				updateQuestUI();if(!questOverlay.hidden)renderQuests();if(!shopOverlay.hidden)renderShop();
-				if(snapshot.running){running=true;overlay.hidden=true;if(!frameId)frameId=requestAnimationFrame(loop);}else running=false;
+				if(snapshot.running){running=true;overlay.hidden=true;touchControls.hidden=!mobileControlsEnabled;if(!frameId)frameId=requestAnimationFrame(loop);}else{running=false;touchControls.hidden=true;}
 			}
 			function broadcastSnapshot() {
 				if(networkRole!=='host')return;
@@ -534,7 +560,7 @@
 				elapsed+=dt; wave=1+Math.floor(score/8); waveText.textContent=String(wave).padStart(2,'0');
 				const actors=[player,...remotePlayers];
 				for(const actor of actors) {
-					const input=actor===player?{dx:Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy:Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup')),aimX:pointer.x,aimY:pointer.y,fire:pointer.down,spell:activeSpell}:actor.input||{};
+					const input=actor===player?{dx:Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'))+movementStick.x,dy:Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'))+movementStick.y,aimX:pointer.x,aimY:pointer.y,fire:pointer.down,spell:activeSpell}:actor.input||{};
 					const length=Math.hypot(input.dx||0,input.dy||0)||1;
 					actor.x=Math.max(28,Math.min(WORLD_W-28,actor.x+(input.dx||0)/length*actor.speed*dt));actor.y=Math.max(34,Math.min(WORLD_H-28,actor.y+(input.dy||0)/length*actor.speed*dt));
 					actor.invulnerable=Math.max(0,(actor.invulnerable||0)-dt);actor.shotTimer=Math.max(0,(actor.shotTimer||0)-dt);
@@ -661,10 +687,10 @@
 				player.x=WORLD_W/2;player.y=WORLD_H/2;player.health=player.maxHealth;player.invulnerable=0;enemies=[];bolts=[];arcs=[];particles=[];coinDrops=[];
 				remotePlayers=remotePlayers.map((actor,index)=>({...actor,x:WORLD_W/2+(index+1)*32,y:WORLD_H/2,input:actor.input||{},invulnerable:0,shotTimer:0}));
 				scoreText.textContent='000';waveText.textContent='01';syncHealth();
-				overlay.hidden=true;questOverlay.hidden=true;shopOverlay.hidden=true;running=true;updateQuestUI();frameId=requestAnimationFrame(loop);
+				overlay.hidden=true;questOverlay.hidden=true;shopOverlay.hidden=true;touchControls.hidden=!mobileControlsEnabled;running=true;updateQuestUI();frameId=requestAnimationFrame(loop);
 			}
 			function endGame() {
-				running=false;overlayTitle.textContent='The woods go quiet';overlayMessage.textContent=`You cleared ${score} ${score===1?'wisp':'wisps'} and collected ${coins} coins.`;startButton.textContent='Try again';overlay.hidden=false;
+				running=false;touchControls.hidden=true;overlayTitle.textContent='The woods go quiet';overlayMessage.textContent=`You cleared ${score} ${score===1?'wisp':'wisps'} and collected ${coins} coins.`;startButton.textContent='Try again';overlay.hidden=false;
 			}
 			function updatePointer(event) {
 				const rect=canvas.getBoundingClientRect();
@@ -682,7 +708,7 @@
 				}
 			});
 			window.addEventListener('keyup',event=>keys.delete(event.key.toLowerCase()));
-			window.addEventListener('blur',()=>{keys.clear();pointer.down=false;});
+			window.addEventListener('blur',()=>{keys.clear();releaseStick(movementStick);releaseStick(aimStick);pointer.down=false;});
 			canvas.addEventListener('pointermove',updatePointer);
 			canvas.addEventListener('pointerdown',event=>{
 				updatePointer(event);pointer.down=true;canvas.setPointerCapture(event.pointerId);
@@ -690,6 +716,38 @@
 			});
 			canvas.addEventListener('pointerup',()=>{pointer.down=false;if(networkRole==='guest')sendGuestInput();});
 			canvas.addEventListener('pointercancel',()=>{pointer.down=false;if(networkRole==='guest')sendGuestInput();});
+			function moveStick(event,stick) {
+				const rect=event.currentTarget.getBoundingClientRect();
+				const centerX=rect.left+rect.width/2,centerY=rect.top+rect.height/2;
+				const rawX=event.clientX-centerX,rawY=event.clientY-centerY;
+				const distance=Math.hypot(rawX,rawY),maxTravel=rect.width*.3;
+				const scale=distance>maxTravel?maxTravel/distance:1;
+				stick.x=distance<5?0:rawX/maxTravel;
+				stick.y=distance<5?0:rawY/maxTravel;
+				const knobX=rawX*scale,knobY=rawY*scale;
+				stick.knob.style.transform=`translate(calc(-50% + ${knobX}px),calc(-50% + ${knobY}px))`;
+				if(stick===aimStick) {
+					if(distance>rect.width*.12) {
+						pointer.x=player.x+stick.x*650;pointer.y=player.y+stick.y*650;pointer.down=true;
+					} else pointer.down=false;
+					if(networkRole==='guest')sendGuestInput();
+				}
+			}
+			function releaseStick(stick) {
+				stick.x=0;stick.y=0;stick.pointerId=null;
+				stick.knob.style.transform='translate(-50%,-50%)';
+				if(stick===aimStick) { pointer.down=false;if(networkRole==='guest')sendGuestInput(); }
+			}
+			function bindJoystick(element,stick) {
+				element.addEventListener('pointerdown',event=>{
+					event.preventDefault();if(stick.pointerId!==null)return;
+					stick.pointerId=event.pointerId;element.setPointerCapture(event.pointerId);moveStick(event,stick);
+				});
+				element.addEventListener('pointermove',event=>{if(event.pointerId===stick.pointerId){event.preventDefault();moveStick(event,stick);}});
+				for(const type of ['pointerup','pointercancel','lostpointercapture']) element.addEventListener(type,event=>{if(event.pointerId===stick.pointerId)releaseStick(stick);});
+			}
+			if(mobileControlsEnabled)document.body.classList.add('mobile');
+			bindJoystick(moveJoystick,movementStick);bindJoystick(aimJoystick,aimStick);
 			questOptions.addEventListener('click',event=>{const action=event.target.closest('[data-quest]');if(action)handleQuestAction(action.dataset.quest);});
 			shopOptions.addEventListener('click',event=>{const action=event.target.closest('[data-kind]');if(action)equipShopItem(action.dataset.kind,action.dataset.item);});
 			shopLaunch.addEventListener('click',openShop);closeQuest.addEventListener('click',closeQuestMenu);closeShop.addEventListener('click',()=>shopOverlay.hidden=true);
