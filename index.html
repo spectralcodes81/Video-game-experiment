@@ -83,6 +83,7 @@
 		.questbar { border-top:1px solid var(--line); color:var(--muted); background:#17231f; }
 		#questText { color:var(--ink); }
 		#questPrompt { color:var(--gold); }
+		#talkButton { padding:6px 9px; font-size:9px; }
 		#spellText { color:var(--mint); }
 		.spellbar { display:flex; flex-wrap:wrap; gap:6px; padding:10px 18px; border-top:1px solid var(--line); background:#17231f; }
 		.spell-pick { min-width:74px; padding:7px 8px; border-color:#40564c; color:var(--muted); background:#1b2926; font-size:9px; text-transform:none; letter-spacing:0; }
@@ -105,7 +106,7 @@
 </head>
 <body>
 	<main class="shell">
-		<header><div><p class="eyebrow">A little spellcraft experiment</p><div class="title-row"><h1>Stormbound</h1><a class="discord-link" href="https://discord.gg/Jy6bngJYJh" target="_blank" rel="noopener noreferrer" aria-label="Join the Stormbound Discord" title="Join the Stormbound Discord"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.2 5.7A18 18 0 0 1 12 4.4c2.4 0 4.7.5 6.8 1.3a16 16 0 0 1 2.1 10.1 18 18 0 0 1-5.3 2.7l-1.2-1.7m-4.8 0-1.2 1.7a18 18 0 0 1-5.3-2.7A16 16 0 0 1 5.2 5.7Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 11.5h3m-1.5-1.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.5" cy="11" r=".8" fill="currentColor"/><circle cx="17.8" cy="12.7" r=".8" fill="currentColor"/></svg><span class="discord-label">Discord</span></a></div></div><p class="subtitle">The old woods are crackling tonight.</p></header>
+		<header><div><p class="eyebrow">A little spellcraft experiment</p><div class="title-row"><h1>Stormbound</h1><a class="discord-link" href="https://discord.gg/FBhh7aQC9U" target="_blank" rel="noopener noreferrer" aria-label="Join the Stormbound Discord" title="Join the Stormbound Discord"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.2 5.7A18 18 0 0 1 12 4.4c2.4 0 4.7.5 6.8 1.3a16 16 0 0 1 2.1 10.1 18 18 0 0 1-5.3 2.7l-1.2-1.7m-4.8 0-1.2 1.7a18 18 0 0 1-5.3-2.7A16 16 0 0 1 5.2 5.7Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 11.5h3m-1.5-1.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.5" cy="11" r=".8" fill="currentColor"/><circle cx="17.8" cy="12.7" r=".8" fill="currentColor"/></svg><span class="discord-label">Discord</span></a></div></div><p class="subtitle">The old woods are crackling tonight.</p></header>
 		<section class="game-frame" aria-label="Stormbound wizard game">
 			<div class="hud">
 				<div class="stat"><span class="stat-label">Vitality</span><div class="health-track" role="progressbar" aria-label="Wizard health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="health-fill"></div></div><span class="stat-value" id="healthText">100</span></div>
@@ -139,7 +140,7 @@
 					</section>
 				</div>
 			</div>
-			<div class="questbar" aria-live="polite"><span id="questText">Quest: Find Elder Rowan in the woods.</span><span id="questPrompt">The keeper waits to the west.</span><span id="spellText">Spell: Spark</span></div>
+			<div class="questbar" aria-live="polite"><span id="questText">Quest: Find Elder Rowan in the woods.</span><span id="questPrompt">The keeper waits to the west.</span><button id="talkButton" type="button" hidden>Talk to Rowan</button><span id="spellText">Spell: Spark</span></div>
 			<div class="spellbar" id="spellbar" role="group" aria-label="Select a spell"></div>
 			<div class="controls">
 				<div class="control-group"><span class="key-set"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>Move</span></div>
@@ -185,6 +186,7 @@
 			const overlayMessage = document.querySelector('#overlayMessage');
 			const questText = document.querySelector('#questText');
 			const questPrompt = document.querySelector('#questPrompt');
+			const talkButton = document.querySelector('#talkButton');
 			const spellText = document.querySelector('#spellText');
 			const coinText = document.querySelector('#coinText');
 			const questOverlay = document.querySelector('#questOverlay');
@@ -336,7 +338,8 @@
 				const quest=quests.find(item=>item.id===activeQuestId);
 				questText.textContent=!quest?'Quest: Choose a spell trial from Elder Rowan.' : questProgress>=quest.goal?`Quest complete: Return for ${spells.find(item=>item.id===quest.reward).name}.`:`Quest: ${quest.name} · ${questProgress}/${quest.goal}`;
 				const nearby=Math.hypot(player.x-elder.x,player.y-elder.y)<76;
-				questPrompt.textContent=nearby?'E · Rowan’s quests':'Find Elder Rowan to the west';
+				questPrompt.textContent=nearby?(mobileControlsEnabled?'Tap Talk to Rowan':'E · Rowan’s quests'):'Find Elder Rowan to the west';
+				talkButton.hidden=!(mobileControlsEnabled&&running&&nearby);
 				spellText.textContent=`Spell: ${spells.find(item=>item.id===activeSpell).name} · ${unlockedSpells.size}/${spells.length} learned`;
 			}
 			function renderQuests() {
@@ -750,7 +753,7 @@
 			bindJoystick(moveJoystick,movementStick);bindJoystick(aimJoystick,aimStick);
 			questOptions.addEventListener('click',event=>{const action=event.target.closest('[data-quest]');if(action)handleQuestAction(action.dataset.quest);});
 			shopOptions.addEventListener('click',event=>{const action=event.target.closest('[data-kind]');if(action)equipShopItem(action.dataset.kind,action.dataset.item);});
-			shopLaunch.addEventListener('click',openShop);closeQuest.addEventListener('click',closeQuestMenu);closeShop.addEventListener('click',()=>shopOverlay.hidden=true);
+			shopLaunch.addEventListener('click',openShop);talkButton.addEventListener('click',interact);closeQuest.addEventListener('click',closeQuestMenu);closeShop.addEventListener('click',()=>shopOverlay.hidden=true);
 			hostButton.addEventListener('click',()=>connectToRoom('host'));
 			quickJoinButton.addEventListener('click',()=>connectToRoom('quick'));
 			joinButton.addEventListener('click',()=>{
