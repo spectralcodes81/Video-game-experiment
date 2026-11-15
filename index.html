@@ -64,6 +64,14 @@
 		.overlay:not(.quest-overlay) .dialog { padding:15px 20px; border:1px solid #536a60; border-radius:4px; background:#08110fe8; pointer-events:auto; }
 		.quest-overlay { z-index:2; place-items:center; background:#08110fe8; text-align:left; }
 		.quest-dialog { width:min(100%,620px); max-height:100%; overflow:auto; padding:22px; border:1px solid #536a60; border-radius:5px; background:#1b2926; box-shadow:0 20px 60px #0009; }
+		.auth-dialog { width:min(calc(100% - 32px),390px); padding:22px; border:1px solid #536a60; border-radius:5px; color:var(--ink); background:#1b2926; box-shadow:0 20px 60px #0009; }
+		.auth-dialog::backdrop { background:#08110fd1; }
+		.auth-heading { display:flex; align-items:start; justify-content:space-between; gap:16px; margin-bottom:12px; }
+		.auth-heading h2 { margin:0; font:400 27px/1.1 'DM Serif Display',Georgia,serif; }
+		.auth-status { margin:0 0 14px; color:var(--muted); font-size:10px; line-height:1.6; overflow-wrap:anywhere; }
+		.auth-providers { display:grid; gap:8px; }
+		.auth-providers button { width:100%; }
+		.auth-providers button:disabled { opacity:.45; cursor:default; transform:none; }
 		.quest-heading { display:flex; align-items:start; justify-content:space-between; gap:16px; margin-bottom:16px; }
 		.quest-heading h2 { margin:0 0 5px; font:400 27px/1.1 'DM Serif Display',Georgia,serif; }
 		.quest-heading p { margin:0; color:var(--muted); font-size:10px; line-height:1.6; }
@@ -152,6 +160,7 @@
 				<div class="control-group"><kbd>E</kbd><span>Talk</span></div>
 				<div class="control-group"><button id="shopLaunch" type="button">Shop</button></div>
 				<div class="control-group"><button id="fullscreenButton" type="button">Fullscreen</button></div>
+				<div class="control-group"><button id="accountButton" type="button">Sign in</button></div>
 			</div>
 			<div class="networkbar" aria-label="Online multiplayer">
 				<input id="nameInput" type="text" autocomplete="nickname" maxlength="20" placeholder="Wizard name" aria-label="Your player name">
@@ -163,9 +172,22 @@
 				<span class="network-status" id="networkStatus" aria-live="polite">Offline game</span>
 			</div>
 		</section>
+		<dialog class="auth-dialog" id="authDialog" aria-labelledby="authTitle">
+			<div class="auth-heading"><h2 id="authTitle">Save your progress</h2><button class="quest-close" id="closeAuth" type="button" aria-label="Close sign-in dialog">×</button></div>
+			<p class="auth-status" id="authStatus" aria-live="polite">Progress is saved on this device.</p>
+			<div class="auth-providers">
+				<button type="button" data-provider="google" disabled>Continue with Google</button>
+				<button type="button" data-provider="facebook" disabled>Continue with Facebook</button>
+				<button type="button" data-provider="apple" disabled>Continue with Apple</button>
+				<button type="button" id="signOutButton" hidden>Sign out</button>
+			</div>
+		</dialog>
 		<p class="footnote">A / D strafe · Hold click for a steady stream · Keep moving</p>
 	</main>
 	<script src="multiplayer-config.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 	<script>
 		(() => {
 			const canvas = document.querySelector('#game');
@@ -213,8 +235,19 @@
 			const chatToggle = document.querySelector('#chatToggle');
 			const shopLaunch = document.querySelector('#shopLaunch');
 			const fullscreenButton = document.querySelector('#fullscreenButton');
+			const accountButton = document.querySelector('#accountButton');
+			const authDialog = document.querySelector('#authDialog');
+			const authStatus = document.querySelector('#authStatus');
+			const closeAuth = document.querySelector('#closeAuth');
+			const signOutButton = document.querySelector('#signOutButton');
+			const providerButtons = [...document.querySelectorAll('[data-provider]')];
 			const closeQuest = document.querySelector('#closeQuest');
 			const closeShop = document.querySelector('#closeShop');
+			let firebaseAuth = null;
+			let firebaseDb = null;
+			let currentUser = null;
+			let cloudSaveTimer = null;
+			let firebaseReady = false;
 			const W = 900, H = 900, WORLD_W = 1800, WORLD_H = 1800;
 			const keys = new Set();
 			const mobileControlsEnabled=Boolean(window.matchMedia?.('(pointer: coarse)').matches||navigator.maxTouchPoints>0);
@@ -293,8 +326,81 @@
 			}
 			function saveProgress() {
 				try {
-					localStorage.setItem('stormbound-save',JSON.stringify({coins,unlocked:[...unlockedSpells],avatars:[...ownedAvatars],pets:[...ownedPets],activeAvatar,activePet,activeQuestId,questProgress}));
+					const progress={coins,unlocked:[...unlockedSpells],avatars:[...ownedAvatars],pets:[...ownedPets],activeAvatar,activePet,activeQuestId,questProgress};
+					localStorage.setItem('stormbound-save',JSON.stringify(progress));
+					if(firebaseReady&&currentUser){
+						const user=currentUser;
+						clearTimeout(cloudSaveTimer);
+						cloudSaveTimer=setTimeout(()=>writeCloudSave(progress,user),800);
+					}
 				} catch {}
+			}
+			function mergeProgress(local,cloud) {
+				const mergeList=key=>[...new Set([...(local[key]||[]),...(cloud[key]||[])])];
+				return {...local,...cloud,coins:Math.max(Number(local.coins)||0,Number(cloud.coins)||0),unlocked:mergeList('unlocked'),avatars:mergeList('avatars'),pets:mergeList('pets'),questProgress:Math.max(Number(local.questProgress)||0,Number(cloud.questProgress)||0)};
+			}
+			function updateAuthUI() {
+				accountButton.textContent=currentUser?'Account':'Sign in';
+				providerButtons.forEach(button=>button.disabled=!firebaseReady||Boolean(currentUser));
+				signOutButton.hidden=!currentUser;
+			}
+			async function writeCloudSave(progress,user=currentUser) {
+				if(!firebaseDb||!user)return;
+				try {
+					await firebaseDb.collection('users').doc(user.uid).collection('saves').doc('progress').set({...progress,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+					if(currentUser?.uid===user.uid)authStatus.textContent=`Cloud save synced for ${user.email||user.displayName||'your account'}.`;
+				} catch(error) {
+					if(currentUser?.uid===user.uid)authStatus.textContent=`Cloud save failed: ${error.message}`;
+				}
+			}
+			async function syncCloudSave(user) {
+				authStatus.textContent=`Loading cloud progress for ${user.email||user.displayName||'your account'}…`;
+				try {
+					const saveRef=firebaseDb.collection('users').doc(user.uid).collection('saves').doc('progress');
+					const snapshot=await saveRef.get();
+					if(currentUser?.uid!==user.uid)return;
+					const local=JSON.parse(localStorage.getItem('stormbound-save')||'{}');
+					const progress=snapshot.exists?mergeProgress(local,snapshot.data()):local;
+					localStorage.setItem('stormbound-save',JSON.stringify(progress));
+					loadProgress();renderSpellbar();updateQuestUI();
+					await writeCloudSave(progress,user);
+				} catch(error) {
+					authStatus.textContent=`Could not load cloud progress: ${error.message}`;
+				}
+			}
+			function initializeCloudSave() {
+				const config=window.STORMBOUND_FIREBASE_CONFIG;
+				if(!window.firebase||!config?.apiKey||!config?.authDomain||!config?.projectId||!config?.appId){
+					authStatus.textContent='Cloud saves need Firebase setup. Local progress will keep saving on this device.';
+					return;
+				}
+				try {
+					const app=firebase.apps.length?firebase.app():firebase.initializeApp(config);
+					firebaseAuth=app.auth();firebaseDb=app.firestore();firebaseReady=true;updateAuthUI();
+					firebaseAuth.onAuthStateChanged(user=>{
+						currentUser=user;updateAuthUI();
+						if(user)syncCloudSave(user);
+						else authStatus.textContent='Progress is saved on this device.';
+					});
+					firebaseAuth.getRedirectResult().catch(error=>{authStatus.textContent=`Sign-in failed: ${error.message}`;});
+				} catch(error) {
+					authStatus.textContent=`Firebase could not start: ${error.message}`;
+				}
+			}
+			async function signIn(providerName) {
+				if(!firebaseReady)return;
+				let provider;
+				if(providerName==='google')provider=new firebase.auth.GoogleAuthProvider();
+				else if(providerName==='facebook'){provider=new firebase.auth.FacebookAuthProvider();provider.addScope('email');}
+				else {provider=new firebase.auth.OAuthProvider('apple.com');provider.addScope('email');provider.addScope('name');}
+				try { await firebaseAuth.signInWithPopup(provider); }
+				catch(error) {
+					if(error.code==='auth/popup-blocked'){
+						try { await firebaseAuth.signInWithRedirect(provider);return; }
+						catch(redirectError){error=redirectError;}
+					}
+					authStatus.textContent=`Sign-in failed: ${error.message}`;
+				}
 			}
 			function loadProgress() {
 				try {
@@ -789,7 +895,12 @@
 				try{await navigator.clipboard.writeText(currentRoom);networkStatus.textContent=`Copied room code ${currentRoom}.`;}
 				catch{roomInput.value=currentRoom;roomInput.select();networkStatus.textContent='Room code selected; copy it to invite a friend.';}
 			});
+			accountButton.addEventListener('click',()=>authDialog.showModal());
+			closeAuth.addEventListener('click',()=>authDialog.close());
+			providerButtons.forEach(button=>button.addEventListener('click',()=>signIn(button.dataset.provider)));
+			signOutButton.addEventListener('click',()=>firebaseAuth?.signOut());
 			startButton.addEventListener('click',startGame);window.addEventListener('resize',resize);loadProgress();renderSpellbar();updateQuestUI();resize();
+			initializeCloudSave();
 		})();
 	</script>
 </body>
