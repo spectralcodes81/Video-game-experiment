@@ -21,6 +21,8 @@
 		.discord-label { white-space:nowrap; }
 		.subtitle { margin:0 0 2px; color:var(--muted); font-size:11px; }
 		.game-frame { overflow:hidden; border:1px solid #536a60; border-radius:7px; background:#15211e; box-shadow:0 24px 80px #0008,0 0 0 5px #ffffff08; }
+		.game-frame:fullscreen { width:100vw; height:100dvh; overflow:auto; border:0; border-radius:0; }
+		.game-frame:fullscreen .canvas-wrap { width:min(100%,min(70dvh,900px)); }
 		.hud { display:grid; grid-template-columns:1fr auto auto 1fr; align-items:center; min-height:68px; padding:12px 18px; gap:16px; background:var(--panel); border-bottom:1px solid var(--line); }
 		.stat { display:flex; align-items:center; gap:10px; }
 		.stat:last-child { justify-content:end; }
@@ -149,6 +151,7 @@
 				<div class="control-group"><kbd>1–7</kbd><span>Select spell</span></div>
 				<div class="control-group"><kbd>E</kbd><span>Talk</span></div>
 				<div class="control-group"><button id="shopLaunch" type="button">Shop</button></div>
+				<div class="control-group"><button id="fullscreenButton" type="button">Fullscreen</button></div>
 			</div>
 			<div class="networkbar" aria-label="Online multiplayer">
 				<input id="nameInput" type="text" autocomplete="nickname" maxlength="20" placeholder="Wizard name" aria-label="Your player name">
@@ -170,6 +173,7 @@
 			const minimap = document.querySelector('#minimap');
 			const miniCtx = minimap.getContext('2d');
 			const wrap = document.querySelector('.canvas-wrap');
+			const gameFrame = document.querySelector('.game-frame');
 			const touchControls = document.querySelector('#touchControls');
 			const moveJoystick = document.querySelector('#moveJoystick');
 			const aimJoystick = document.querySelector('#aimJoystick');
@@ -208,6 +212,7 @@
 			const chatSend = document.querySelector('#chatSend');
 			const chatToggle = document.querySelector('#chatToggle');
 			const shopLaunch = document.querySelector('#shopLaunch');
+			const fullscreenButton = document.querySelector('#fullscreenButton');
 			const closeQuest = document.querySelector('#closeQuest');
 			const closeShop = document.querySelector('#closeShop');
 			const W = 900, H = 900, WORLD_W = 1800, WORLD_H = 1800;
@@ -754,6 +759,14 @@
 			questOptions.addEventListener('click',event=>{const action=event.target.closest('[data-quest]');if(action)handleQuestAction(action.dataset.quest);});
 			shopOptions.addEventListener('click',event=>{const action=event.target.closest('[data-kind]');if(action)equipShopItem(action.dataset.kind,action.dataset.item);});
 			shopLaunch.addEventListener('click',openShop);talkButton.addEventListener('click',interact);closeQuest.addEventListener('click',closeQuestMenu);closeShop.addEventListener('click',()=>shopOverlay.hidden=true);
+			fullscreenButton.disabled=!gameFrame.requestFullscreen;
+			fullscreenButton.addEventListener('click',async()=>{
+				try{
+					if(document.fullscreenElement)await document.exitFullscreen();
+					else await gameFrame.requestFullscreen();
+				}catch{networkStatus.textContent='Fullscreen could not be opened.';}
+			});
+			document.addEventListener('fullscreenchange',()=>{fullscreenButton.textContent=document.fullscreenElement===gameFrame?'Exit fullscreen':'Fullscreen';});
 			hostButton.addEventListener('click',()=>connectToRoom('host'));
 			quickJoinButton.addEventListener('click',()=>connectToRoom('quick'));
 			joinButton.addEventListener('click',()=>{
