@@ -64,14 +64,14 @@
 		.overlay:not(.quest-overlay) .dialog { padding:15px 20px; border:1px solid #536a60; border-radius:4px; background:#08110fe8; pointer-events:auto; }
 		.quest-overlay { z-index:2; place-items:center; background:#08110fe8; text-align:left; }
 		.quest-dialog { width:min(100%,620px); max-height:100%; overflow:auto; padding:22px; border:1px solid #536a60; border-radius:5px; background:#1b2926; box-shadow:0 20px 60px #0009; }
-		.auth-dialog { width:min(calc(100% - 32px),390px); padding:22px; border:1px solid #536a60; border-radius:5px; color:var(--ink); background:#1b2926; box-shadow:0 20px 60px #0009; }
-		.auth-dialog::backdrop { background:#08110fd1; }
-		.auth-heading { display:flex; align-items:start; justify-content:space-between; gap:16px; margin-bottom:12px; }
-		.auth-heading h2 { margin:0; font:400 27px/1.1 'DM Serif Display',Georgia,serif; }
-		.auth-status { margin:0 0 14px; color:var(--muted); font-size:10px; line-height:1.6; overflow-wrap:anywhere; }
-		.auth-providers { display:grid; gap:8px; }
-		.auth-providers button { width:100%; }
-		.auth-providers button:disabled { opacity:.45; cursor:default; transform:none; }
+		.save-dialog { width:min(calc(100% - 32px),430px); padding:22px; border:1px solid #536a60; border-radius:5px; color:var(--ink); background:#1b2926; box-shadow:0 20px 60px #0009; }
+		.save-dialog::backdrop { background:#08110fd1; }
+		.save-heading { display:flex; align-items:start; justify-content:space-between; gap:16px; margin-bottom:12px; }
+		.save-heading h2 { margin:0; font:400 27px/1.1 'DM Serif Display',Georgia,serif; }
+		.save-status { margin:0 0 10px; color:var(--muted); font-size:10px; line-height:1.6; overflow-wrap:anywhere; }
+		.save-code { display:block; width:100%; min-height:100px; margin-bottom:9px; padding:9px; border:1px solid #465a52; border-radius:3px; color:var(--ink); background:#0e1715; font:10px/1.5 'DM Mono',monospace; overflow-wrap:anywhere; resize:vertical; }
+		.save-actions { display:flex; flex-wrap:wrap; gap:7px; }
+		.save-actions button { flex:1 1 112px; }
 		.quest-heading { display:flex; align-items:start; justify-content:space-between; gap:16px; margin-bottom:16px; }
 		.quest-heading h2 { margin:0 0 5px; font:400 27px/1.1 'DM Serif Display',Georgia,serif; }
 		.quest-heading p { margin:0; color:var(--muted); font-size:10px; line-height:1.6; }
@@ -95,6 +95,7 @@
 		#questPrompt { color:var(--gold); }
 		#talkButton { padding:6px 9px; font-size:9px; }
 		#spellText { color:var(--mint); }
+		#fragmentText { color:#e8a64b; }
 		.spellbar { display:flex; flex-wrap:wrap; gap:6px; padding:10px 18px; border-top:1px solid var(--line); background:#17231f; }
 		.spell-pick { min-width:74px; padding:7px 8px; border-color:#40564c; color:var(--muted); background:#1b2926; font-size:9px; text-transform:none; letter-spacing:0; }
 		.spell-pick[aria-pressed="true"] { border-color:var(--spell-color); color:var(--spell-color); background:#253630; }
@@ -150,17 +151,17 @@
 					</section>
 				</div>
 			</div>
-			<div class="questbar" aria-live="polite"><span id="questText">Quest: Find Elder Rowan in the woods.</span><span id="questPrompt">The keeper waits to the west.</span><button id="talkButton" type="button" hidden>Talk to Rowan</button><span id="spellText">Spell: Spark</span></div>
+			<div class="questbar" aria-live="polite"><span id="questText">Quest: Find Elder Rowan in the woods.</span><span id="questPrompt">The keeper waits to the west.</span><span id="fragmentText">Thanksgiving fragments: 0/3</span><button id="talkButton" type="button" hidden>Talk to Rowan</button><span id="spellText">Spell: Spark</span></div>
 			<div class="spellbar" id="spellbar" role="group" aria-label="Select a spell"></div>
 			<div class="controls">
 				<div class="control-group"><span class="key-set"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>Move</span></div>
 				<div class="control-group"><kbd>Mouse</kbd><span>Aim</span></div>
 				<div class="control-group"><kbd>Click</kbd><span>Cast</span></div>
-				<div class="control-group"><kbd>1–7</kbd><span>Select spell</span></div>
+				<div class="control-group"><kbd>1–8</kbd><span>Select spell</span></div>
 				<div class="control-group"><kbd>E</kbd><span>Talk</span></div>
 				<div class="control-group"><button id="shopLaunch" type="button">Shop</button></div>
 				<div class="control-group"><button id="fullscreenButton" type="button">Fullscreen</button></div>
-				<div class="control-group"><button id="accountButton" type="button">Sign in</button></div>
+				<div class="control-group"><button id="saveCodeButton" type="button">Save code</button></div>
 			</div>
 			<div class="networkbar" aria-label="Online multiplayer">
 				<input id="nameInput" type="text" autocomplete="nickname" maxlength="20" placeholder="Wizard name" aria-label="Your player name">
@@ -172,22 +173,20 @@
 				<span class="network-status" id="networkStatus" aria-live="polite">Offline game</span>
 			</div>
 		</section>
-		<dialog class="auth-dialog" id="authDialog" aria-labelledby="authTitle">
-			<div class="auth-heading"><h2 id="authTitle">Save your progress</h2><button class="quest-close" id="closeAuth" type="button" aria-label="Close sign-in dialog">×</button></div>
-			<p class="auth-status" id="authStatus" aria-live="polite">Progress is saved on this device.</p>
-			<div class="auth-providers">
-				<button type="button" data-provider="google" disabled>Continue with Google</button>
-				<button type="button" data-provider="facebook" disabled>Continue with Facebook</button>
-				<button type="button" data-provider="apple" disabled>Continue with Apple</button>
-				<button type="button" id="signOutButton" hidden>Sign out</button>
+		<dialog class="save-dialog" id="saveDialog" aria-labelledby="saveTitle">
+			<div class="save-heading"><h2 id="saveTitle">Transfer your progress</h2><button class="quest-close" id="closeSave" type="button" aria-label="Close save dialog">×</button></div>
+			<p class="save-status" id="saveStatus" aria-live="polite">Create a code on this device, then load it on your other device.</p>
+			<label class="stat-label" for="saveCodeInput">Save code</label>
+			<textarea class="save-code" id="saveCodeInput" maxlength="6000" spellcheck="false" autocomplete="off" placeholder="Create a code or paste one here"></textarea>
+			<div class="save-actions">
+				<button type="button" id="createSaveCode">Create code</button>
+				<button type="button" id="copySaveCode">Copy code</button>
+				<button type="button" id="loadSaveCode">Load code</button>
 			</div>
 		</dialog>
 		<p class="footnote">A / D strafe · Hold click for a steady stream · Keep moving</p>
 	</main>
 	<script src="multiplayer-config.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 	<script>
 		(() => {
 			const canvas = document.querySelector('#game');
@@ -212,6 +211,7 @@
 			const overlayMessage = document.querySelector('#overlayMessage');
 			const questText = document.querySelector('#questText');
 			const questPrompt = document.querySelector('#questPrompt');
+			const fragmentText = document.querySelector('#fragmentText');
 			const talkButton = document.querySelector('#talkButton');
 			const spellText = document.querySelector('#spellText');
 			const coinText = document.querySelector('#coinText');
@@ -235,19 +235,16 @@
 			const chatToggle = document.querySelector('#chatToggle');
 			const shopLaunch = document.querySelector('#shopLaunch');
 			const fullscreenButton = document.querySelector('#fullscreenButton');
-			const accountButton = document.querySelector('#accountButton');
-			const authDialog = document.querySelector('#authDialog');
-			const authStatus = document.querySelector('#authStatus');
-			const closeAuth = document.querySelector('#closeAuth');
-			const signOutButton = document.querySelector('#signOutButton');
-			const providerButtons = [...document.querySelectorAll('[data-provider]')];
+			const saveCodeButton = document.querySelector('#saveCodeButton');
+			const saveDialog = document.querySelector('#saveDialog');
+			const saveStatus = document.querySelector('#saveStatus');
+			const saveCodeInput = document.querySelector('#saveCodeInput');
+			const closeSave = document.querySelector('#closeSave');
+			const createSaveCodeButton = document.querySelector('#createSaveCode');
+			const copySaveCodeButton = document.querySelector('#copySaveCode');
+			const loadSaveCode = document.querySelector('#loadSaveCode');
 			const closeQuest = document.querySelector('#closeQuest');
 			const closeShop = document.querySelector('#closeShop');
-			let firebaseAuth = null;
-			let firebaseDb = null;
-			let currentUser = null;
-			let cloudSaveTimer = null;
-			let firebaseReady = false;
 			const W = 900, H = 900, WORLD_W = 1800, WORLD_H = 1800;
 			const keys = new Set();
 			const mobileControlsEnabled=Boolean(window.matchMedia?.('(pointer: coarse)').matches||navigator.maxTouchPoints>0);
@@ -258,10 +255,11 @@
 			const elder = { x:WORLD_W/2-170, y:WORLD_H/2 };
 			let enemies = [], bolts = [], arcs = [], particles = [], coinDrops = [], remotePlayers = [];
 			let score = 0, wave = 1, questProgress = 0;
-			let spawnTimer = 0, shotTimer = 0, running = false, lastTime = 0, elapsed = 0, frameId;
+			let spawnTimer = 0, shotTimer = 0, coinMagnetTimer = 0, running = false, lastTime = 0, elapsed = 0, frameId;
 			let rngSeed = 81;
 			let coins = 0, activeQuestId = null, nextEnemyId = 0;
 			let activeSpell = 'spark', activeAvatar = 'sage', activePet = null;
+			let foundHarvestFragments = [];
 			let networkRole = 'offline', gameSocket = null, localPeerId = null, currentRoom = '', snapshotTimer = 0, inputTimer = null;
 			const directoryUrl = (window.STORMBOUND_DIRECTORY_URL || location.origin).replace(/\/$/, '');
 			const ownedAvatars = new Set(['sage']);
@@ -274,7 +272,13 @@
 				{ id:'earth', name:'Earth', element:'Earth', color:'#d5a866', speed:360, cooldown:.72, splashRadius:86 },
 				{ id:'air', name:'Air', element:'Air', color:'#d2f3e8', speed:850, cooldown:.3, pierce:2 },
 				{ id:'cyber', name:'Cyber', element:'Cyber', color:'#67e8ef', speed:680, cooldown:.55, chainJumps:4 },
-				{ id:'fire', name:'Fire', element:'Fire', color:'#ff875d', speed:440, cooldown:.6, splashRadius:70 }
+				{ id:'fire', name:'Fire', element:'Fire', color:'#ff875d', speed:440, cooldown:.6, splashRadius:70 },
+				{ id:'cornucopia', name:'Cornucopia', element:'Thanksgiving Exclusive', color:'#e8a64b', speed:450, cooldown:40, clearMap:true }
+			];
+			const harvestFragmentLocations = [
+				{ id:'sunseed', x:WORLD_W/2-390, y:WORLD_H/2-220 },
+				{ id:'goldenKernel', x:WORLD_W/2+440, y:WORLD_H/2-390 },
+				{ id:'hearthLeaf', x:WORLD_W/2+350, y:WORLD_H/2+440 }
 			];
 			const quests = [
 				{ id:'chain', name:'Crackle in the Hollow', goal:5, reward:'chain', description:'Defeat 5 wisps · reward: Chain Lightning' },
@@ -321,103 +325,94 @@
 			function fireSpell(caster=player,aim=pointer,spellId=activeSpell) {
 				const spell=spells.find(item=>item.id===spellId);
 				if(!running||!spell||!unlockedSpells.has(spell.id)||caster.shotTimer>0)return false;
-				caster.spellId=spell.id;cast(caster,aim,spell.id);caster.shotTimer=spell.cooldown;
+				caster.spellId=spell.id;
+				if(spell.clearMap) {
+					coinMagnetTimer=5;
+					burst(caster.x,caster.y,spell.color,32);
+					for(const enemy of enemies)if(enemy.health>0){burst(enemy.x,enemy.y,spell.color,12);defeatEnemy(enemy);}
+				} else cast(caster,aim,spell.id);
+				caster.shotTimer=spell.cooldown;
 				return true;
 			}
 			function saveProgress() {
 				try {
-					const progress={coins,unlocked:[...unlockedSpells],avatars:[...ownedAvatars],pets:[...ownedPets],activeAvatar,activePet,activeQuestId,questProgress};
-					localStorage.setItem('stormbound-save',JSON.stringify(progress));
-					if(firebaseReady&&currentUser){
-						const user=currentUser;
-						clearTimeout(cloudSaveTimer);
-						cloudSaveTimer=setTimeout(()=>writeCloudSave(progress,user),800);
-					}
+					localStorage.setItem('stormbound-save',JSON.stringify(getProgressSnapshot()));
 				} catch {}
 			}
-			function mergeProgress(local,cloud) {
-				const mergeList=key=>[...new Set([...(local[key]||[]),...(cloud[key]||[])])];
-				return {...local,...cloud,coins:Math.max(Number(local.coins)||0,Number(cloud.coins)||0),unlocked:mergeList('unlocked'),avatars:mergeList('avatars'),pets:mergeList('pets'),questProgress:Math.max(Number(local.questProgress)||0,Number(cloud.questProgress)||0)};
+			function getProgressSnapshot() {
+					return {coins,unlocked:[...unlockedSpells],avatars:[...ownedAvatars],pets:[...ownedPets],activeAvatar,activePet,activeQuestId,questProgress,harvestFragments:[...foundHarvestFragments]};
 			}
-			function updateAuthUI() {
-				accountButton.textContent=currentUser?'Account':'Sign in';
-				providerButtons.forEach(button=>button.disabled=!firebaseReady||Boolean(currentUser));
-				signOutButton.hidden=!currentUser;
+			function sanitizeProgress(data) {
+				if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('That save code is not valid.');
+				const coins=Number(data.coins??0);
+				if(!Number.isSafeInteger(coins)||coins<0||coins>1000000000)throw new Error('That save code has an invalid coin total.');
+				const validIds=(values,items)=>[...new Set((Array.isArray(values)?values:[]).filter(id=>typeof id==='string'&&items.some(item=>item.id===id)))];
+				const unlocked=validIds(data.unlocked,spells);
+				if(!unlocked.includes('spark'))unlocked.push('spark');
+				const harvestFragments=validIds(data.harvestFragments,harvestFragmentLocations);
+				if(unlocked.includes('cornucopia'))for(const fragment of harvestFragmentLocations)if(!harvestFragments.includes(fragment.id))harvestFragments.push(fragment.id);
+				const avatarsOwned=validIds(data.avatars,avatars);
+				if(!avatarsOwned.includes('sage'))avatarsOwned.push('sage');
+				const petsOwned=validIds(data.pets,pets);
+				const activeQuest=quests.find(quest=>quest.id===data.activeQuestId);
+				const questAmount=Math.max(0,Math.floor(Number(data.questProgress)||0));
+				return {
+					coins,unlocked,avatars:avatarsOwned,pets:petsOwned,
+					activeAvatar:avatarsOwned.includes(data.activeAvatar)?data.activeAvatar:'sage',
+					activePet:petsOwned.includes(data.activePet)?data.activePet:null,
+					activeQuestId:activeQuest?.id||null,
+					questProgress:activeQuest?Math.min(activeQuest.goal,questAmount):0,
+					harvestFragments
+				};
 			}
-			async function writeCloudSave(progress,user=currentUser) {
-				if(!firebaseDb||!user)return;
-				try {
-					await firebaseDb.collection('users').doc(user.uid).collection('saves').doc('progress').set({...progress,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
-					if(currentUser?.uid===user.uid)authStatus.textContent=`Cloud save synced for ${user.email||user.displayName||'your account'}.`;
-				} catch(error) {
-					if(currentUser?.uid===user.uid)authStatus.textContent=`Cloud save failed: ${error.message}`;
-				}
+			function applyProgress(data) {
+				const progress=sanitizeProgress(data);
+				coins=progress.coins;
+				unlockedSpells.clear();progress.unlocked.forEach(id=>unlockedSpells.add(id));
+				ownedAvatars.clear();progress.avatars.forEach(id=>ownedAvatars.add(id));
+				ownedPets.clear();progress.pets.forEach(id=>ownedPets.add(id));
+				activeAvatar=progress.activeAvatar;activePet=progress.activePet;
+				activeQuestId=progress.activeQuestId;questProgress=progress.questProgress;
+				foundHarvestFragments=progress.harvestFragments;
+				player.maxHealth=100+(pets.find(pet=>pet.id===activePet)?.health||0);
+				player.health=player.maxHealth;syncHealth();updateCoinUI();
 			}
-			async function syncCloudSave(user) {
-				authStatus.textContent=`Loading cloud progress for ${user.email||user.displayName||'your account'}…`;
-				try {
-					const saveRef=firebaseDb.collection('users').doc(user.uid).collection('saves').doc('progress');
-					const snapshot=await saveRef.get();
-					if(currentUser?.uid!==user.uid)return;
-					const local=JSON.parse(localStorage.getItem('stormbound-save')||'{}');
-					const progress=snapshot.exists?mergeProgress(local,snapshot.data()):local;
-					localStorage.setItem('stormbound-save',JSON.stringify(progress));
-					loadProgress();renderSpellbar();updateQuestUI();
-					await writeCloudSave(progress,user);
-				} catch(error) {
-					authStatus.textContent=`Could not load cloud progress: ${error.message}`;
-				}
+			function encodeSaveCode(progress) {
+				const bytes=new TextEncoder().encode(JSON.stringify(progress));
+				let binary='';
+				for(const byte of bytes)binary+=String.fromCharCode(byte);
+				return `SB1-${btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}`;
 			}
-			function initializeCloudSave() {
-				const config=window.STORMBOUND_FIREBASE_CONFIG;
-				if(!window.firebase||!config?.apiKey||!config?.authDomain||!config?.projectId||!config?.appId){
-					authStatus.textContent='Cloud saves need Firebase setup. Local progress will keep saving on this device.';
-					return;
-				}
-				try {
-					const app=firebase.apps.length?firebase.app():firebase.initializeApp(config);
-					firebaseAuth=app.auth();firebaseDb=app.firestore();firebaseReady=true;updateAuthUI();
-					firebaseAuth.onAuthStateChanged(user=>{
-						currentUser=user;updateAuthUI();
-						if(user)syncCloudSave(user);
-						else authStatus.textContent='Progress is saved on this device.';
-					});
-					firebaseAuth.getRedirectResult().catch(error=>{authStatus.textContent=`Sign-in failed: ${error.message}`;});
-				} catch(error) {
-					authStatus.textContent=`Firebase could not start: ${error.message}`;
-				}
+			function decodeSaveCode(code) {
+				const match=/^SB1-([A-Za-z0-9_-]+)$/.exec(code.trim());
+				if(!match)throw new Error('Paste a valid Stormbound save code first.');
+				const base64=match[1].replace(/-/g,'+').replace(/_/g,'/');
+				const binary=atob(base64+'='.repeat((4-base64.length%4)%4));
+				const bytes=Uint8Array.from(binary,character=>character.charCodeAt(0));
+				return sanitizeProgress(JSON.parse(new TextDecoder().decode(bytes)));
 			}
-			async function signIn(providerName) {
-				if(!firebaseReady)return;
-				let provider;
-				if(providerName==='google')provider=new firebase.auth.GoogleAuthProvider();
-				else if(providerName==='facebook'){provider=new firebase.auth.FacebookAuthProvider();provider.addScope('email');}
-				else {provider=new firebase.auth.OAuthProvider('apple.com');provider.addScope('email');provider.addScope('name');}
-				try { await firebaseAuth.signInWithPopup(provider); }
-				catch(error) {
-					if(error.code==='auth/popup-blocked'){
-						try { await firebaseAuth.signInWithRedirect(provider);return; }
-						catch(redirectError){error=redirectError;}
-					}
-					authStatus.textContent=`Sign-in failed: ${error.message}`;
-				}
+			function createSaveCode() {
+				saveCodeInput.value=encodeSaveCode(getProgressSnapshot());
+				saveCodeInput.select();
+				saveStatus.textContent='Code created. Copy it, then paste it on your other device.';
+			}
+			async function copySaveCode() {
+				if(!saveCodeInput.value){saveStatus.textContent='Create a save code first.';return;}
+				try { await navigator.clipboard.writeText(saveCodeInput.value);saveStatus.textContent='Save code copied.'; }
+				catch { saveCodeInput.focus();saveCodeInput.select();saveStatus.textContent='Code selected. Copy it and send it to your other device.'; }
+			}
+			function importSaveCode() {
+				let progress;
+				try { progress=decodeSaveCode(saveCodeInput.value); }
+				catch(error) { saveStatus.textContent=error.message;return; }
+				if(!window.confirm('Loading this code replaces the progress saved on this device. Continue?'))return;
+				applyProgress(progress);saveProgress();renderSpellbar();updateQuestUI();
+				saveStatus.textContent='Progress loaded and saved on this device.';
 			}
 			function loadProgress() {
 				try {
-					const data=JSON.parse(localStorage.getItem('stormbound-save')||'{}');
-					coins=Math.max(0,Math.floor(Number(data.coins)||0));
-					for(const id of data.unlocked||[]) if(spells.some(spell=>spell.id===id)) unlockedSpells.add(id);
-					for(const id of data.avatars||[]) if(avatars.some(avatar=>avatar.id===id)) ownedAvatars.add(id);
-					for(const id of data.pets||[]) if(pets.some(pet=>pet.id===id)) ownedPets.add(id);
-					if(ownedAvatars.has(data.activeAvatar)) activeAvatar=data.activeAvatar;
-					if(ownedPets.has(data.activePet)) activePet=data.activePet;
-					if(quests.some(quest=>quest.id===data.activeQuestId)) activeQuestId=data.activeQuestId;
-					questProgress=Math.max(0,Math.floor(Number(data.questProgress)||0));
+					applyProgress(JSON.parse(localStorage.getItem('stormbound-save')||'{}'));
 				} catch {}
-				player.maxHealth=100+(pets.find(pet=>pet.id===activePet)?.health||0);
-				player.health=player.maxHealth;
-				syncHealth();
-				updateCoinUI();
 			}
 			function syncHealth() {
 				healthText.textContent=Math.ceil(player.health);
@@ -450,6 +445,7 @@
 				questText.textContent=!quest?'Quest: Choose a spell trial from Elder Rowan.' : questProgress>=quest.goal?`Quest complete: Return for ${spells.find(item=>item.id===quest.reward).name}.`:`Quest: ${quest.name} · ${questProgress}/${quest.goal}`;
 				const nearby=Math.hypot(player.x-elder.x,player.y-elder.y)<76;
 				questPrompt.textContent=nearby?(mobileControlsEnabled?'Tap Talk to Rowan':'E · Rowan’s quests'):'Find Elder Rowan to the west';
+				fragmentText.textContent=unlockedSpells.has('cornucopia')?'Cornucopia unlocked':`Thanksgiving fragments: ${foundHarvestFragments.length}/3`;
 				talkButton.hidden=!(mobileControlsEnabled&&running&&nearby);
 				spellText.textContent=`Spell: ${spells.find(item=>item.id===activeSpell).name} · ${unlockedSpells.size}/${spells.length} learned`;
 			}
@@ -672,6 +668,7 @@
 			}
 			function update(dt) {
 				elapsed+=dt; wave=1+Math.floor(score/8); waveText.textContent=String(wave).padStart(2,'0');
+				coinMagnetTimer=Math.max(0,coinMagnetTimer-dt);
 				const actors=[player,...remotePlayers];
 				for(const actor of actors) {
 					const input=actor===player?{dx:Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'))+movementStick.x,dy:Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'))+movementStick.y,aimX:pointer.x,aimY:pointer.y,fire:pointer.down,spell:activeSpell}:actor.input||{};
@@ -699,10 +696,22 @@
 				}
 				bolts=bolts.filter(b=>b.life>0&&b.x>-20&&b.x<WORLD_W+20&&b.y>-20&&b.y<WORLD_H+20);
 				for(const drop of coinDrops) {
-					drop.x+=drop.vx*dt;drop.y+=drop.vy*dt;drop.vy+=75*dt;drop.life-=dt;
+					if(coinMagnetTimer>0) {
+						const pull=Math.min(1,dt*4);drop.x+=(player.x-drop.x)*pull;drop.y+=(player.y-drop.y)*pull;
+					} else { drop.x+=drop.vx*dt;drop.y+=drop.vy*dt;drop.vy+=75*dt; }
+					drop.life-=dt;
 					if(Math.hypot(drop.x-player.x,drop.y-player.y)<player.radius+12) { coins+=drop.value;drop.life=0;updateCoinUI();saveProgress();burst(drop.x,drop.y,'#f5ca75',7); }
 				}
 				coinDrops=coinDrops.filter(drop=>drop.life>0);
+				for(const fragment of harvestFragmentLocations) {
+					if(foundHarvestFragments.includes(fragment.id)||Math.hypot(fragment.x-player.x,fragment.y-player.y)>player.radius+17)continue;
+					foundHarvestFragments.push(fragment.id);burst(fragment.x,fragment.y,'#e8a64b',20);
+					if(foundHarvestFragments.length===harvestFragmentLocations.length) {
+						unlockedSpells.add('cornucopia');activeSpell='cornucopia';player.spellId=activeSpell;
+						questText.textContent='The Thanksgiving spell is whole! Cornucopia is yours.';
+					}
+					saveProgress();renderSpellbar();updateQuestUI();
+				}
 				for(const enemy of enemies) {
 					if(enemy.health<=0) continue;
 					const target=actors.reduce((nearest,actor)=>Math.hypot(actor.x-enemy.x,actor.y-enemy.y)<Math.hypot(nearest.x-enemy.x,nearest.y-enemy.y)?actor:nearest,actors[0]);
@@ -755,6 +764,7 @@
 				for(let i=1;i<4;i++){miniCtx.beginPath();miniCtx.moveTo(i*size/4,0);miniCtx.lineTo(i*size/4,size);miniCtx.moveTo(0,i*size/4);miniCtx.lineTo(size,i*size/4);miniCtx.stroke();}
 				miniCtx.strokeStyle='#ecedc6';miniCtx.lineWidth=1;miniCtx.strokeRect(cameraX*scale,cameraY*scale,W*scale,H*scale);
 				miniCtx.fillStyle='#f5ca75';miniCtx.beginPath();miniCtx.arc(elder.x*scale,elder.y*scale,3,0,Math.PI*2);miniCtx.fill();
+				for(const fragment of harvestFragmentLocations)if(!foundHarvestFragments.includes(fragment.id)){miniCtx.fillStyle='#e8a64b';miniCtx.fillRect(fragment.x*scale-2.5,fragment.y*scale-2.5,5,5);}
 				miniCtx.fillStyle='#e7785c';for(const enemy of enemies){miniCtx.beginPath();miniCtx.arc(enemy.x*scale,enemy.y*scale,1.7,0,Math.PI*2);miniCtx.fill();}
 				miniCtx.fillStyle='#f5ca75';for(const drop of coinDrops){miniCtx.beginPath();miniCtx.arc(drop.x*scale,drop.y*scale,1.5,0,Math.PI*2);miniCtx.fill();}
 				for(const actor of [player,...remotePlayers]){miniCtx.fillStyle=actor===player?'#a4f0ce':'#65c9f2';miniCtx.beginPath();miniCtx.arc(actor.x*scale,actor.y*scale,3,0,Math.PI*2);miniCtx.fill();}
@@ -771,6 +781,10 @@
 					ctx.fillStyle='#dc7657';ctx.beginPath();ctx.ellipse(e.x,e.y,e.radius*.82,e.radius*1.05,Math.sin(e.phase)*.2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffdda0';ctx.beginPath();ctx.arc(e.x-4,e.y-2,1.8,0,Math.PI*2);ctx.arc(e.x+4,e.y-2,1.8,0,Math.PI*2);ctx.fill();
 				}
 				drawElder();
+				for(const fragment of harvestFragmentLocations)if(!foundHarvestFragments.includes(fragment.id)){
+					ctx.save();ctx.translate(fragment.x,fragment.y+Math.sin(elapsed*2+fragment.x)*4);ctx.rotate(elapsed*.55);ctx.shadowColor='#e8a64b';ctx.shadowBlur=18;
+					ctx.fillStyle='#e8a64b';ctx.strokeStyle='#fff0bb';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-13);ctx.lineTo(9,-3);ctx.lineTo(5,10);ctx.lineTo(-7,8);ctx.lineTo(-10,-3);ctx.closePath();ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.restore();
+				}
 				for(const drop of coinDrops) {
 					ctx.globalAlpha=Math.min(1,drop.life);ctx.fillStyle='#f5ca75';ctx.shadowColor='#f5ca75';ctx.shadowBlur=12;
 					ctx.beginPath();ctx.arc(drop.x,drop.y,7,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#684b20';ctx.font='bold 8px monospace';ctx.textAlign='center';ctx.fillText('¢',drop.x,drop.y+3);
@@ -780,6 +794,9 @@
 				ctx.globalAlpha=1;ctx.shadowBlur=0;
 				for(const b of bolts) { const spell=spells.find(item=>item.id===b.spell);ctx.lineCap='round';ctx.strokeStyle=spell.color+'88';ctx.lineWidth=10;ctx.shadowColor=spell.color;ctx.shadowBlur=18;ctx.beginPath();ctx.moveTo(b.x-b.vx*.035,b.y-b.vy*.035);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.strokeStyle=spell.color;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(b.x-b.vx*.035,b.y-b.vy*.035);ctx.lineTo(b.x,b.y);ctx.stroke(); }
 				ctx.shadowBlur=0;
+				if(coinMagnetTimer>0) {
+					ctx.save();ctx.globalAlpha=.45+Math.sin(elapsed*8)*.12;ctx.strokeStyle='#e8a64b';ctx.lineWidth=2;ctx.setLineDash([7,7]);ctx.beginPath();ctx.arc(player.x,player.y,42+Math.sin(elapsed*5)*4,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;ctx.fillStyle='#ffe0a2';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText(`COIN MAGNET ${Math.ceil(coinMagnetTimer)}s`,player.x,player.y-38);ctx.restore();
+				}
 				for(const actor of [player,...remotePlayers]) {
 					if(actor.invulnerable>0&&Math.floor(elapsed*18)%2===0)continue;
 					ctx.save();ctx.translate(actor.x,actor.y);ctx.rotate(actor.facing||0);drawWizard(0,0,false,actor.avatar||activeAvatar);ctx.restore();
@@ -815,7 +832,7 @@
 				const key=event.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(key))event.preventDefault();keys.add(key);
 				if(event.repeat)return;
 				if(key==='e')interact();if(key==='b')openShop();if(key==='escape'){closeQuestMenu();shopOverlay.hidden=true;}
-				if(/^[1-7]$/.test(key))setActiveSpell(spells[Number(key)-1].id);
+				if(/^[1-8]$/.test(key))setActiveSpell(spells[Number(key)-1].id);
 				if(key===' '&&running) {
 					if(networkRole==='guest')sendGuestInput();
 					else fireSpell(player,pointer,activeSpell);
@@ -895,12 +912,12 @@
 				try{await navigator.clipboard.writeText(currentRoom);networkStatus.textContent=`Copied room code ${currentRoom}.`;}
 				catch{roomInput.value=currentRoom;roomInput.select();networkStatus.textContent='Room code selected; copy it to invite a friend.';}
 			});
-			accountButton.addEventListener('click',()=>authDialog.showModal());
-			closeAuth.addEventListener('click',()=>authDialog.close());
-			providerButtons.forEach(button=>button.addEventListener('click',()=>signIn(button.dataset.provider)));
-			signOutButton.addEventListener('click',()=>firebaseAuth?.signOut());
+			saveCodeButton.addEventListener('click',()=>saveDialog.showModal());
+			closeSave.addEventListener('click',()=>saveDialog.close());
+			createSaveCodeButton.addEventListener('click',createSaveCode);
+			copySaveCodeButton.addEventListener('click',copySaveCode);
+			loadSaveCode.addEventListener('click',importSaveCode);
 			startButton.addEventListener('click',startGame);window.addEventListener('resize',resize);loadProgress();renderSpellbar();updateQuestUI();resize();
-			initializeCloudSave();
 		})();
 	</script>
 </body>
